@@ -10,6 +10,18 @@ class SuggestMovie
 {
     public function execute(int $roomId, int $participantId): ?int
     {
+        $selection = $this->selectCandidate($roomId, $participantId);
+
+        return $selection['id'];
+    }
+
+    public function executeWithDebug(int $roomId, int $participantId): array
+    {
+        return $this->selectCandidate($roomId, $participantId);
+    }
+
+    protected function selectCandidate(int $roomId, int $participantId): array
+    {
         $seenMovieIds = MovieVote::where('room_id', $roomId)
             ->where('room_participant_id', $participantId)
             ->pluck('movie_id')
@@ -88,6 +100,7 @@ class SuggestMovie
                 'movies.id',
                 DB::raw('count(distinct room_likes.room_participant_id) as room_likes_count'),
                 DB::raw($genreMatchExpr.' as genre_match_count'),
+                DB::raw($yearMatchExpr.' as year_match_count'),
                 DB::raw(
                     '('.$weights['room_likes'].' * count(distinct room_likes.room_participant_id) + '.
                     $weights['genre_match'].' * '.$genreMatchExpr.' + '.
@@ -101,12 +114,32 @@ class SuggestMovie
             ->get();
 
         if ($candidates->isNotEmpty()) {
-            return $candidates->random()->id;
+            $picked = $candidates->random();
+
+            return [
+                'id' => $picked->id,
+                'score' => (int) $picked->score,
+                'room_likes' => (int) $picked->room_likes_count,
+                'genre_match' => (int) $picked->genre_match_count,
+                'year_match' => (int) $picked->year_match_count,
+                'weights' => $weights,
+                'avg_year' => $avgYear,
+            ];
         }
 
-        return Movie::query()
+        $fallbackId = Movie::query()
             ->when(! empty($seenMovieIds), fn ($query) => $query->whereNotIn('id', $seenMovieIds))
             ->inRandomOrder()
             ->value('id');
+
+        return [
+            'id' => $fallbackId,
+            'score' => 0,
+            'room_likes' => 0,
+            'genre_match' => 0,
+            'year_match' => 0,
+            'weights' => $weights,
+            'avg_year' => $avgYear,
+        ];
     }
 }

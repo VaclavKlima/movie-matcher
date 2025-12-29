@@ -102,6 +102,22 @@
                             Thumbs up
                         </button>
                     </div>
+                    @if ($debugSuggest)
+                        <div class="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50/60 px-4 py-3 text-xs text-stone-700">
+                            <div class="font-semibold uppercase tracking-[0.2em] text-amber-600">Debug suggest</div>
+                            <div class="mt-2 flex flex-wrap gap-3">
+                                <span>score: {{ $debugSuggestMeta['score'] ?? 0 }}</span>
+                                <span>room likes: {{ $debugSuggestMeta['room_likes'] ?? 0 }}</span>
+                                <span>genre matches: {{ $debugSuggestMeta['genre_match'] ?? 0 }}</span>
+                                <span>year match: {{ $debugSuggestMeta['year_match'] ?? 0 }}</span>
+                            </div>
+                            <div class="mt-2 text-[11px] text-stone-500">
+                                weights: room {{ $debugSuggestMeta['weights']['room_likes'] ?? 0 }},
+                                genre {{ $debugSuggestMeta['weights']['genre_match'] ?? 0 }},
+                                year {{ $debugSuggestMeta['weights']['year_match'] ?? 0 }}
+                            </div>
+                        </div>
+                    @endif
                     @if ($lastChoice)
                         <div class="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
                             {{ $lastChoice === 'up' ? 'You gave it a thumbs up. Bold choice.' : 'You passed. The director is devastated.' }}

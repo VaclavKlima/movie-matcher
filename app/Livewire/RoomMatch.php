@@ -22,6 +22,8 @@ class RoomMatch extends Component
     public ?string $lastChoice = null;
     public bool $showMatchModal = false;
     public ?int $matchedMovieId = null;
+    public bool $debugSuggest = false;
+    public array $debugSuggestMeta = [];
 
     public function mount(?string $code = null): void
     {
@@ -44,6 +46,7 @@ class RoomMatch extends Component
         $this->participantId = $participant->id;
         $this->roomCode = $room->code;
         $this->isHost = (bool) $participant->is_host;
+        $this->debugSuggest = request()->boolean('debug');
         $this->loadRandomMovie();
 
         if ($room->matched_movie_id) {
@@ -141,6 +144,13 @@ class RoomMatch extends Component
 
     protected function loadRandomMovie(): void
     {
+        if ($this->debugSuggest) {
+            $result = app(SuggestMovie::class)->executeWithDebug($this->roomId, $this->participantId);
+            $this->currentMovieId = $result['id'];
+            $this->debugSuggestMeta = $result;
+            return;
+        }
+
         $this->currentMovieId = app(SuggestMovie::class)->execute($this->roomId, $this->participantId);
     }
 
