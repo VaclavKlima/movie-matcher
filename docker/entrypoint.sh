@@ -9,19 +9,19 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Generate APP_KEY if it's empty
-if ! grep -q "APP_KEY=base64:" .env; then
-  echo "🔑 Generating application key..."
-  php artisan key:generate --force
-fi
-
-# Install composer dependencies
+# Install composer dependencies FIRST (needed before running any artisan commands)
 if [ ! -f vendor/autoload.php ]; then
   echo "📦 Installing composer dependencies..."
   composer install --no-interaction --prefer-dist --optimize-autoloader
 else
   echo "📦 Updating composer dependencies..."
   composer install --no-interaction --prefer-dist --optimize-autoloader
+fi
+
+# Generate APP_KEY if it's empty (after composer install)
+if ! grep -q "APP_KEY=base64:" .env; then
+  echo "🔑 Generating application key..."
+  php artisan key:generate --force
 fi
 
 # Create database file if it doesn't exist
