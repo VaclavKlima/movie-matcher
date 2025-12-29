@@ -28,6 +28,16 @@
                 <div class="mt-2 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2 text-lg font-semibold tracking-[0.35em] text-stone-800">
                     {{ $roomCode }}
                 </div>
+                @if ($isHost)
+                    <x-confirm-modal
+                        trigger-text="Disband room"
+                        trigger-class="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+                        title="Disband this room?"
+                        message="This will kick everyone and delete the room."
+                        confirm-text="Yes, disband"
+                        confirm-action="disbandRoom"
+                    />
+                @endif
             </div>
         </header>
 

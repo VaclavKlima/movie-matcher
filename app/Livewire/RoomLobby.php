@@ -164,6 +164,28 @@ class RoomLobby extends Component
         }
     }
 
+    public function disbandRoom(): void
+    {
+        if (! $this->isHost) {
+            return;
+        }
+
+        $room = Room::find($this->roomId);
+        if (! $room) {
+            $this->redirectRoute('home');
+            return;
+        }
+
+        RoomParticipant::where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->update(['kicked_at' => Carbon::now()]);
+
+        $room->delete();
+
+        $this->redirectRoute('home');
+        return;
+    }
+
     public function startMatching(): void
     {
         if (! $this->isHost || $this->isKicked) {

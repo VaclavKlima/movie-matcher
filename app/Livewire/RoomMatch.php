@@ -99,8 +99,15 @@ class RoomMatch extends Component
 
     public function refreshState(): void
     {
+        $participant = RoomParticipant::where('id', $this->participantId)->first();
+        if (! $participant || $participant->kicked_at !== null) {
+            $this->redirectRoute('home');
+            return;
+        }
+
         $room = Room::find($this->roomId);
         if (! $room) {
+            $this->redirectRoute('home');
             return;
         }
 
@@ -119,6 +126,28 @@ class RoomMatch extends Component
             $this->showMatchModal = false;
             $this->matchedMovieId = null;
         }
+    }
+
+    public function disbandRoom(): void
+    {
+        if (! $this->isHost) {
+            return;
+        }
+
+        $room = Room::find($this->roomId);
+        if (! $room) {
+            $this->redirectRoute('home');
+            return;
+        }
+
+        RoomParticipant::where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->update(['kicked_at' => Carbon::now()]);
+
+        $room->delete();
+
+        $this->redirectRoute('home');
+        return;
     }
 
     public function render()
