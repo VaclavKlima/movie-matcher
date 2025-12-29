@@ -20,6 +20,7 @@ class RoomMatch extends Component
     public bool $isHost = false;
     public ?int $currentMovieId = null;
     public ?string $lastChoice = null;
+    public ?string $lastChoiceMessage = null;
     public bool $showMatchModal = false;
     public ?int $matchedMovieId = null;
     public bool $debugSuggest = false;
@@ -80,6 +81,10 @@ class RoomMatch extends Component
         );
 
         $this->lastChoice = $decision;
+        $messageOptions = config('room.last_choice_messages.'.$decision, []);
+        $this->lastChoiceMessage = $messageOptions !== []
+            ? \Illuminate\Support\Arr::random($messageOptions)
+            : null;
 
         $this->checkForMatch($movieId);
         $this->loadRandomMovie();

@@ -122,12 +122,6 @@
                         </div>
                     @endif
                     @if ($lastChoice)
-                        @php
-                            $messageOptions = config('room.last_choice_messages.'.$lastChoice, []);
-                            $lastChoiceMessage = $messageOptions !== []
-                                ? \Illuminate\Support\Arr::random($messageOptions)
-                                : '';
-                        @endphp
                         <div class="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
                             {{ $lastChoiceMessage }}
                         </div>
