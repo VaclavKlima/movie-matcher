@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Queue\Queue;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\LazyCollection;
+use Illuminate\Support\Str;
 
 class ScrapeMoviesCommand extends Command
 {
@@ -25,7 +26,9 @@ class ScrapeMoviesCommand extends Command
             $json = json_encode($xml, JSON_THROW_ON_ERROR);
             $array = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-            foreach ($array['sitemap'] as $url) {
+            $sitemaps = array_reverse($array['sitemap'] ?? []);
+
+            foreach ($sitemaps as $url) {
                 $this->info('Processing URL: ' . $url['loc']);
 
                 $this->processSitemapUrl($url['loc']);
@@ -54,11 +57,13 @@ class ScrapeMoviesCommand extends Command
             $reader->close();
         });
 
-        $collection->each(function ($item) {
+        $collection->reverse()->each(function ($item) {
             $this->info('Processing item: ' . $item['loc']);
 
             // Dispatch the job to scrape the movie
-            ScrapeMovieJob::dispatch($item['loc']);
+            if (Str::contains($item['loc'], 'https://www.csfd.cz/film')) {
+                ScrapeMovieJob::dispatch($item['loc']);
+            }
         });
 
     }

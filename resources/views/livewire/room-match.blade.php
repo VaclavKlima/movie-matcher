@@ -109,13 +109,15 @@
                                 <span>score: {{ $debugSuggestMeta['score'] ?? 0 }}</span>
                                 <span>room likes: {{ $debugSuggestMeta['room_likes'] ?? 0 }}</span>
                                 <span>genre score: {{ $debugSuggestMeta['genre_score'] ?? 0 }}</span>
-                                <span>year match: {{ $debugSuggestMeta['year_match'] ?? 0 }}</span>
+                                <span>year score: {{ $debugSuggestMeta['year_score'] ?? 0 }}</span>
+                                <span>novelty bonus: {{ $debugSuggestMeta['novelty_bonus'] ?? 0 }}</span>
+                                <span>genre multiplier: {{ $debugSuggestMeta['genre_score_multiplier'] ?? 1 }}</span>
                                 <span>total score: {{ $debugSuggestMeta['total_score'] ?? 0 }}</span>
                             </div>
                             <div class="mt-2 text-[11px] text-stone-500">
                                 weights: room {{ $debugSuggestMeta['weights']['room_likes'] ?? 0 }},
                                 genre {{ $debugSuggestMeta['weights']['genre_score'] ?? 0 }},
-                                year {{ $debugSuggestMeta['weights']['year_match'] ?? 0 }}
+                                year {{ $debugSuggestMeta['weights']['year_score'] ?? 0 }}
                             </div>
                         </div>
                     @endif

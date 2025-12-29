@@ -24,7 +24,7 @@ class ScrapeMovieJob implements ShouldQueue
     public function handle()
     {
         $html = Http::get($this->url);
-
+        dd($this->url);
         $dom = new \DOMDocument();
         @$dom->loadHTML($html);
         $xpath = new \DOMXPath($dom);
