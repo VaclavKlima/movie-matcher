@@ -17,10 +17,7 @@ RUN apt-get update \
         pdo \
         pdo_sqlite \
         dom \
-    && docker-php-ext-install \
-        xml \
         xmlreader \
-        simplexml \
         zip \
     && rm -rf /var/lib/apt/lists/*
 
