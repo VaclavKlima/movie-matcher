@@ -11,12 +11,12 @@ RUN apt-get update \
         libzip-dev \
         nodejs \
         npm \
+    && docker-php-ext-install dom \
     && docker-php-ext-install \
         intl \
         mbstring \
         pdo \
         pdo_sqlite \
-        dom \
         xmlreader \
         zip \
     && rm -rf /var/lib/apt/lists/*
