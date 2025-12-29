@@ -8,6 +8,25 @@ fi
 
 echo "🚀 Starting Laravel application setup..."
 
+# Wait for Redis to be ready (if REDIS_HOST is set)
+if [ -n "${REDIS_HOST:-}" ]; then
+  echo "⏳ Waiting for Redis..."
+  REDIS_READY=0
+  for i in {1..30}; do
+    if redis-cli -h "$REDIS_HOST" -p "${REDIS_PORT:-6379}" ping > /dev/null 2>&1; then
+      echo "✓ Redis is ready!"
+      REDIS_READY=1
+      break
+    fi
+    echo "   Waiting for Redis... (attempt $i/30)"
+    sleep 1
+  done
+
+  if [ $REDIS_READY -eq 0 ]; then
+    echo "⚠️  Warning: Redis not available after 30 seconds, continuing anyway..."
+  fi
+fi
+
 # Create .env file if it doesn't exist
 if [ ! -f .env ]; then
   echo "📝 Creating .env file from .env.example..."

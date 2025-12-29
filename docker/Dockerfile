@@ -13,6 +13,7 @@ RUN apt-get update \
         git \
         unzip \
         curl \
+        redis-tools \
         libicu-dev \
         libonig-dev \
         libsqlite3-dev \
@@ -28,6 +29,10 @@ RUN docker-php-ext-install -j$(nproc) \
         pdo \
         pdo_sqlite \
         zip
+
+# Install Redis extension
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
