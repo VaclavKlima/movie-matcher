@@ -19,6 +19,7 @@ RUN apt-get update \
         libsqlite3-dev \
         libxml2-dev \
         libzip-dev \
+        default-mysql-client \
         nodejs \
         npm \
     && rm -rf /var/lib/apt/lists/*
@@ -27,6 +28,7 @@ RUN docker-php-ext-install -j$(nproc) \
         intl \
         mbstring \
         pdo \
+        pdo_mysql \
         pdo_sqlite \
         zip
 
