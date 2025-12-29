@@ -12,6 +12,13 @@ class Room extends Model
 
     protected $fillable = [
         'code',
+        'started_at',
+        'current_movie_id',
+        'matched_movie_id',
+    ];
+
+    protected $casts = [
+        'started_at' => 'datetime',
     ];
 
     public function participants()

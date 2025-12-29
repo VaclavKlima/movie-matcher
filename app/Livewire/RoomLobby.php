@@ -24,7 +24,7 @@ class RoomLobby extends Component
     public array $avatars = [];
     public array $knownParticipantIds = [];
 
-    public function mount(?string $code = null)
+    public function mount(?string $code = null): void
     {
         $this->avatars = [
             ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
@@ -42,18 +42,30 @@ class RoomLobby extends Component
 
             Session::put('host_room_code', $room->code);
 
-            return redirect()->route('rooms.show', ['code' => $room->code]);
+            $this->redirectRoute('rooms.show', ['code' => $room->code]);
+            return;
         }
 
         $room = Room::where('code', $code)->firstOrFail();
         $isHost = Session::get('host_room_code') === $room->code;
+        $existingParticipant = RoomParticipant::where('room_id', $room->id)
+            ->where('session_id', Session::getId())
+            ->first();
 
-        $participant = RoomParticipant::firstOrCreate(
+        if ($room->started_at && ! $existingParticipant) {
+            abort(403, 'This room is already matching.');
+        }
+
+        $participant = $existingParticipant ?? RoomParticipant::firstOrCreate(
             ['room_id' => $room->id, 'session_id' => Session::getId()],
             ['avatar' => $this->avatar, 'is_host' => $isHost, 'last_seen_at' => Carbon::now()]
         );
         if ($isHost && ! $participant->is_host) {
             $participant->update(['is_host' => true]);
+        }
+        if ($isHost && ! $participant->is_ready) {
+            $participant->update(['is_ready' => true]);
+            $participant->is_ready = true;
         }
         if ($participant->wasRecentlyCreated && empty($participant->name)) {
             $participant->update(['name' => $this->randomDefaultName()]);
@@ -74,6 +86,11 @@ class RoomLobby extends Component
             ->pluck('id')
             ->all();
         $this->touchParticipant();
+
+        if ($room->started_at && ! $this->isKicked) {
+            $this->redirectRoute('rooms.match', ['code' => $room->code]);
+            return;
+        }
     }
 
     public function updatedName(): void
@@ -99,6 +116,12 @@ class RoomLobby extends Component
         $currentParticipant = RoomParticipant::where('id', $this->participantId)->first();
         if (! $currentParticipant || $currentParticipant->kicked_at !== null) {
             $this->isKicked = true;
+            return;
+        }
+
+        $roomStarted = Room::where('id', $this->roomId)->value('started_at');
+        if ($roomStarted) {
+            $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
             return;
         }
 
@@ -142,6 +165,33 @@ class RoomLobby extends Component
         if ($updated) {
             $this->dispatch('toast', message: 'Guest was yeeted from the room', type: 'success');
         }
+    }
+
+    public function startMatching(): void
+    {
+        if (! $this->isHost || $this->isKicked) {
+            return;
+        }
+
+        $roomStarted = Room::where('id', $this->roomId)->value('started_at');
+        if ($roomStarted) {
+            $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
+            return;
+        }
+
+        $participants = RoomParticipant::where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->get();
+
+        $hasEnoughPlayers = $participants->count() >= 2;
+        $everyoneReady = $participants->every(fn ($participant) => (bool) $participant->is_ready);
+
+        if (! $hasEnoughPlayers || ! $everyoneReady) {
+            return;
+        }
+
+        Room::where('id', $this->roomId)->update(['started_at' => Carbon::now()]);
+        $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
     }
 
     public function toggleReady(): void

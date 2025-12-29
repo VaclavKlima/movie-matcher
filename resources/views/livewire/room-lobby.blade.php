@@ -255,20 +255,22 @@
                     @if($isHost)
                         <button
                             type="button"
+                            wire:click="startMatching"
                             class="mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold shadow-lg transition {{ $canStartMatching ? 'bg-amber-500 text-stone-900 shadow-amber-500/20 hover:bg-amber-400' : 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-stone-200/20' }}"
                             @disabled(! $canStartMatching)
                             aria-disabled="{{ $canStartMatching ? 'false' : 'true' }}"
                         >
                             Start matching
                         </button>
+                    @else
+                        <button
+                            type="button"
+                            wire:click="toggleReady"
+                            class="mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold shadow-lg transition {{ $isReady ? 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-400' : 'bg-stone-900 text-white shadow-stone-900/20 hover:bg-stone-800' }}"
+                        >
+                            {{ $isReady ? 'Im not ready yet' : 'Im ready' }}
+                        </button>
                     @endif
-                    <button
-                        type="button"
-                        wire:click="toggleReady"
-                        class="mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold shadow-lg transition {{ $isReady ? 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-400' : 'bg-stone-900 text-white shadow-stone-900/20 hover:bg-stone-800' }}"
-                    >
-                        {{ $isReady ? 'Im not ready yet' : 'Im ready' }}
-                    </button>
                 </div>
             </section>
         </div>

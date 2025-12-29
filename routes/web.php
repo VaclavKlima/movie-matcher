@@ -2,12 +2,14 @@
 
 use App\Livewire\Home;
 use App\Livewire\RoomLobby;
+use App\Livewire\RoomMatch;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', Home::class)->name('home');
 Route::get('/rooms/create', RoomLobby::class)->name('rooms.create');
 Route::get('/rooms/{code}', RoomLobby::class)->name('rooms.show');
+Route::get('/rooms/{code}/match', RoomMatch::class)->name('rooms.match');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
