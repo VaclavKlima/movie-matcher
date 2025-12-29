@@ -19,6 +19,7 @@ class SuggestMovie
     private const NOVELTY_PENALTY = -2.0;
     private const GENRE_DOMINANCE_THRESHOLD = 0.6;
     private const GENRE_DOMINANCE_MULTIPLIER = 0.6;
+    private const CANDIDATE_SAMPLE_SIZE = 1000;
 
     public function execute(int $roomId, int $participantId): ?int
     {
@@ -102,7 +103,7 @@ class SuggestMovie
             ? "(".self::YEAR_SCORE_MAX." - (2 * ".self::YEAR_SCORE_MAX.") * {$yearNormalizedExpr} * {$yearNormalizedExpr})"
             : '0';
 
-        $candidates = Movie::query()
+        $sampleIds = Movie::query()
             ->when(! empty($seenMovieIds), fn ($query) => $query->whereNotIn('movies.id', $seenMovieIds))
             ->when($hasTaste, function ($query) use ($topGenreIds, $avgYear, $hasGenreTaste, $hasYearTaste) {
                 $query->where(function ($innerQuery) use ($topGenreIds, $avgYear, $hasGenreTaste, $hasYearTaste) {
@@ -123,6 +124,12 @@ class SuggestMovie
                     }
                 });
             })
+            ->inRandomOrder()
+            ->limit(self::CANDIDATE_SAMPLE_SIZE)
+            ->pluck('movies.id');
+
+        $candidates = Movie::query()
+            ->whereIn('movies.id', $sampleIds)
             ->leftJoin('movie_votes as room_likes', function ($join) use ($roomId, $participantId) {
                 $join->on('room_likes.movie_id', '=', 'movies.id')
                     ->where('room_likes.room_id', $roomId)
