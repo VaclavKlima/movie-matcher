@@ -6,9 +6,14 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/var/www/html
+      - storage-data:/var/www/html/storage
+      - database-data:/var/www/html/database
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
       APP_URL: http://localhost:8000
     command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+
+volumes:
+  storage-data:
+  database-data:
