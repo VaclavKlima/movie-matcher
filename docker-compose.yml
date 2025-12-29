@@ -34,7 +34,7 @@ services:
   mysql:
     image: mysql:8.0
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ${MYSQL_DATA_PATH:-./mysql-data}:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
       MYSQL_DATABASE: ${DB_DATABASE:-moviematcher}
@@ -96,5 +96,4 @@ services:
 
 volumes:
   storage-data:
-  mysql-data:
   redis-data:
