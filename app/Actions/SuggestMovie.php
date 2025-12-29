@@ -97,7 +97,7 @@ class SuggestMovie
         ];
 
         $genreScoreExpr = $hasGenreTaste ? 'coalesce(sum(genre_scores.score), 0)' : '0';
-        $yearDeltaExpr = "(case when abs(movies.year - {$avgYear}) < ".self::YEAR_SCORE_RANGE." then abs(movies.year - {$avgYear}) else ".self::YEAR_SCORE_RANGE." end)";
+        $yearDeltaExpr = "(case when abs(CAST(movies.year AS SIGNED) - {$avgYear}) < ".self::YEAR_SCORE_RANGE." then abs(CAST(movies.year AS SIGNED) - {$avgYear}) else ".self::YEAR_SCORE_RANGE." end)";
         $yearNormalizedExpr = "(1.0 * {$yearDeltaExpr} / ".self::YEAR_SCORE_RANGE.")";
         $yearScoreExpr = $hasYearTaste
             ? "(".self::YEAR_SCORE_MAX." - (2 * ".self::YEAR_SCORE_MAX.") * {$yearNormalizedExpr} * {$yearNormalizedExpr})"
@@ -157,7 +157,7 @@ class SuggestMovie
                     ') as score'
                 ),
             ])
-            ->groupBy('movies.id', 'movies.year')
+            ->groupBy('movies.id')
             ->orderByDesc('score')
             ->limit(50)
             ->get();
