@@ -48,7 +48,6 @@ class ScrapeMovieJob implements ShouldQueue
 
         $description = $xpath->query('//div[@class="plot-full"]')->item(0)?->textContent ?? '';
 
-
         $movie = Movie::firstOrCreate([
             'name' => $name,
         ],[

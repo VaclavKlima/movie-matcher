@@ -1,0 +1,194 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\Room;
+use App\Models\RoomParticipant;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
+use Livewire\Component;
+
+class RoomLobby extends Component
+{
+    public int $roomId;
+    public int $participantId;
+    public string $roomCode = '';
+    public string $shareUrl = '';
+    public string $name = '';
+    public string $avatar = 'popcorn';
+    public bool $isHost = false;
+    public bool $isKicked = false;
+    public bool $isReady = false;
+    public array $avatars = [];
+    public array $knownParticipantIds = [];
+
+    public function mount(?string $code = null)
+    {
+        $this->avatars = [
+            ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
+            ['id' => 'clapper', 'label' => 'Clapper', 'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'ring' => 'ring-slate-400/40'],
+            ['id' => 'reel', 'label' => 'Reel', 'bg' => 'bg-stone-900', 'text' => 'text-white', 'ring' => 'ring-stone-500/40'],
+            ['id' => 'ticket', 'label' => 'Ticket', 'bg' => 'bg-rose-100', 'text' => 'text-rose-700', 'ring' => 'ring-rose-400/40'],
+            ['id' => 'projector', 'label' => 'Projector', 'bg' => 'bg-teal-100', 'text' => 'text-teal-700', 'ring' => 'ring-teal-400/40'],
+            ['id' => 'star', 'label' => 'Star', 'bg' => 'bg-indigo-100', 'text' => 'text-indigo-700', 'ring' => 'ring-indigo-400/40'],
+        ];
+
+        if (Route::is('rooms.create')) {
+            $room = Room::create([
+                'code' => Room::generateCode(),
+            ]);
+
+            Session::put('host_room_code', $room->code);
+
+            return redirect()->route('rooms.show', ['code' => $room->code]);
+        }
+
+        $room = Room::where('code', $code)->firstOrFail();
+        $isHost = Session::get('host_room_code') === $room->code;
+
+        $participant = RoomParticipant::firstOrCreate(
+            ['room_id' => $room->id, 'session_id' => Session::getId()],
+            ['avatar' => $this->avatar, 'is_host' => $isHost, 'last_seen_at' => Carbon::now()]
+        );
+        if ($isHost && ! $participant->is_host) {
+            $participant->update(['is_host' => true]);
+        }
+        if ($participant->wasRecentlyCreated && empty($participant->name)) {
+            $participant->update(['name' => $this->randomDefaultName()]);
+        }
+
+        $this->roomId = $room->id;
+        $this->participantId = $participant->id;
+        $this->roomCode = $room->code;
+        $this->shareUrl = url('/rooms/'.$room->code);
+        $this->name = $participant->name ?? '';
+        $this->avatar = $participant->avatar ?? $this->avatar;
+        $this->isHost = $isHost;
+        $this->isKicked = $participant->kicked_at !== null;
+        $this->isReady = (bool) $participant->is_ready;
+
+        $this->knownParticipantIds = RoomParticipant::where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->pluck('id')
+            ->all();
+        $this->touchParticipant();
+    }
+
+    public function updatedName(): void
+    {
+        if ($this->isKicked) {
+            return;
+        }
+
+        $this->participant()->update(['name' => $this->name]);
+    }
+
+    public function updatedAvatar(): void
+    {
+        if ($this->isKicked) {
+            return;
+        }
+
+        $this->participant()->update(['avatar' => $this->avatar]);
+    }
+
+    public function refreshParticipants(): void
+    {
+        $currentParticipant = RoomParticipant::where('id', $this->participantId)->first();
+        if (! $currentParticipant || $currentParticipant->kicked_at !== null) {
+            $this->isKicked = true;
+            return;
+        }
+
+        $participantIds = RoomParticipant::where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->pluck('id')
+            ->all();
+
+        $newIds = array_values(array_diff($participantIds, $this->knownParticipantIds));
+        if ($newIds) {
+            $newNames = RoomParticipant::whereIn('id', $newIds)
+                ->where('id', '!=', $this->participantId)
+                ->pluck('name')
+                ->filter()
+                ->values()
+                ->all();
+
+            if ($newNames) {
+                $nameList = implode(', ', $newNames);
+                $this->dispatch('toast', message: "Joined: {$nameList}", type: 'success');
+            } elseif (count($newIds) > 0) {
+                $this->dispatch('toast', message: 'A guest joined the room', type: 'success');
+            }
+        }
+
+        $this->knownParticipantIds = $participantIds;
+        $this->touchParticipant();
+    }
+
+    public function kickParticipant(int $participantId): void
+    {
+        if (! $this->isHost || $participantId === $this->participantId) {
+            return;
+        }
+
+        $updated = RoomParticipant::where('id', $participantId)
+            ->where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->update(['kicked_at' => Carbon::now()]);
+
+        if ($updated) {
+            $this->dispatch('toast', message: 'Guest was yeeted from the room', type: 'success');
+        }
+    }
+
+    public function toggleReady(): void
+    {
+        if ($this->isKicked) {
+            return;
+        }
+
+        $this->isReady = ! $this->isReady;
+        $this->participant()->update(['is_ready' => $this->isReady]);
+    }
+
+    public function render()
+    {
+        $participants = RoomParticipant::where('room_id', $this->roomId)
+            ->whereNull('kicked_at')
+            ->orderByDesc('is_host')
+            ->orderBy('created_at')
+            ->get();
+
+        return view('livewire.room-lobby', [
+            'participants' => $participants,
+        ])->layout('components.layouts.marketing', ['title' => 'Room '.$this->roomCode]);
+    }
+
+    protected function participant(): RoomParticipant
+    {
+        return RoomParticipant::where('id', $this->participantId)->firstOrFail();
+    }
+
+    protected function touchParticipant(): void
+    {
+        if ($this->isKicked) {
+            return;
+        }
+
+        RoomParticipant::where('id', $this->participantId)
+            ->update(['last_seen_at' => Carbon::now()]);
+    }
+
+    protected function randomDefaultName(): string
+    {
+        $names = config('room.funny_names', []);
+        if (! is_array($names) || $names === []) {
+            return 'Guest';
+        }
+
+        return Arr::random($names);
+    }
+}
