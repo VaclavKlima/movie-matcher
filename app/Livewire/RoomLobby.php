@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Room;
 use App\Models\RoomParticipant;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
@@ -204,7 +205,7 @@ class RoomLobby extends Component
         $this->participant()->update(['is_ready' => $this->isReady]);
     }
 
-    public function render()
+    public function render(): View
     {
         $participants = RoomParticipant::where('room_id', $this->roomId)
             ->whereNull('kicked_at')

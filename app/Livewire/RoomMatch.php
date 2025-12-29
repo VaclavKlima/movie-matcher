@@ -3,9 +3,12 @@
 namespace App\Livewire;
 
 use App\Models\Room;
+use App\Actions\SuggestMovie;
 use App\Models\MovieVote;
 use App\Models\Movie;
+use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
@@ -41,7 +44,12 @@ class RoomMatch extends Component
         $this->participantId = $participant->id;
         $this->roomCode = $room->code;
         $this->isHost = (bool) $participant->is_host;
-        $this->syncRoomState($room);
+        $this->loadRandomMovie();
+
+        if ($room->matched_movie_id) {
+            $this->matchedMovieId = $room->matched_movie_id;
+            $this->showMatchModal = true;
+        }
     }
 
     public function vote(string $decision): void
@@ -54,25 +62,31 @@ class RoomMatch extends Component
             return;
         }
 
+        $movieId = $this->currentMovieId;
+        if (! $movieId) {
+            return;
+        }
+
         MovieVote::updateOrCreate(
             [
                 'room_id' => $this->roomId,
                 'room_participant_id' => $this->participantId,
-                'movie_id' => $this->currentMovieId,
+                'movie_id' => $movieId,
             ],
             ['decision' => $decision]
         );
 
         $this->lastChoice = $decision;
 
-        $this->checkForMatch($this->currentMovieId);
+        $this->checkForMatch($movieId);
+        $this->loadRandomMovie();
     }
 
     public function continueHunting(): void
     {
         $this->showMatchModal = false;
         $this->matchedMovieId = null;
-        $this->advanceMovie();
+        Room::where('id', $this->roomId)->update(['matched_movie_id' => null]);
     }
 
     public function refreshState(): void
@@ -87,7 +101,16 @@ class RoomMatch extends Component
             return;
         }
 
-        $this->syncRoomState($room);
+        if ($room->matched_movie_id) {
+            $this->matchedMovieId = $room->matched_movie_id;
+            $this->showMatchModal = true;
+            return;
+        }
+
+        if ($this->showMatchModal) {
+            $this->showMatchModal = false;
+            $this->matchedMovieId = null;
+        }
     }
 
     public function render()
@@ -98,6 +121,10 @@ class RoomMatch extends Component
         $matchedMovie = $this->matchedMovieId
             ? Movie::with('genres')->find($this->matchedMovieId)
             : null;
+        $matchedMovies = RoomMovieMatch::with('movie')
+            ->where('room_id', $this->roomId)
+            ->orderByDesc('matched_at')
+            ->get();
         $participants = RoomParticipant::where('room_id', $this->roomId)
             ->whereNull('kicked_at')
             ->orderByDesc('is_host')
@@ -108,12 +135,13 @@ class RoomMatch extends Component
             'participants' => $participants,
             'movie' => $currentMovie,
             'matchedMovie' => $matchedMovie,
+            'matchedMovies' => $matchedMovies,
         ])->layout('components.layouts.marketing', ['title' => 'Matching in '.$this->roomCode]);
     }
 
-    protected function loadRandomMovieId(): ?int
+    protected function loadRandomMovie(): void
     {
-        return Movie::query()->inRandomOrder()->value('id');
+        $this->currentMovieId = app(SuggestMovie::class)->execute($this->roomId, $this->participantId);
     }
 
     protected function checkForMatch(int $movieId): void
@@ -144,38 +172,16 @@ class RoomMatch extends Component
             ->count('room_participant_id');
 
         if ($likesCount === $participantIds->count()) {
-            Room::where('id', $this->roomId)->update([
-                'matched_movie_id' => $movieId,
-            ]);
-            $this->matchedMovieId = $movieId;
-            $this->showMatchModal = true;
-            return;
+            Room::where('id', $this->roomId)->update(['matched_movie_id' => $movieId]);
+            RoomMovieMatch::updateOrCreate(
+                [
+                    'room_id' => $this->roomId,
+                    'movie_id' => $movieId,
+                ],
+                [
+                    'matched_at' => Carbon::now(),
+                ]
+            );
         }
-
-        $this->advanceMovie();
-    }
-
-    protected function advanceMovie(): void
-    {
-        $nextMovieId = $this->loadRandomMovieId();
-        Room::where('id', $this->roomId)->update([
-            'current_movie_id' => $nextMovieId,
-            'matched_movie_id' => null,
-        ]);
-        $this->currentMovieId = $nextMovieId;
-        $this->showMatchModal = false;
-        $this->matchedMovieId = null;
-    }
-
-    protected function syncRoomState(Room $room): void
-    {
-        if (! $room->current_movie_id) {
-            $room->update(['current_movie_id' => $this->loadRandomMovieId()]);
-            $room->refresh();
-        }
-
-        $this->currentMovieId = $room->current_movie_id;
-        $this->matchedMovieId = $room->matched_movie_id;
-        $this->showMatchModal = $room->matched_movie_id !== null;
     }
 }

@@ -145,6 +145,60 @@
                 </div>
             </div>
         </section>
+
+        <section class="rounded-2xl border border-stone-200/80 bg-white/90 p-6 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.45)] backdrop-blur">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-stone-900">Matched picks</h2>
+                    <p class="mt-2 text-sm text-stone-600">The crowd-approved lineup so far.</p>
+                </div>
+                <div class="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold text-stone-500">
+                    {{ $matchedMovies->count() }} matches
+                </div>
+            </div>
+
+            @if ($matchedMovies->isEmpty())
+                <div class="mt-6 rounded-2xl border border-dashed border-stone-200 bg-stone-50 px-5 py-8 text-center text-sm text-stone-600">
+                    No matches yet. Keep swiping for cinematic magic.
+                </div>
+            @else
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($matchedMovies as $match)
+                        @php
+                            $matchedItem = $match->movie;
+                            $matchedCardSrc = $matchedItem && $matchedItem->poster_image
+                                ? (str_starts_with($matchedItem->poster_image, 'data:')
+                                    ? $matchedItem->poster_image
+                                    : 'data:image/jpeg;base64,'.$matchedItem->poster_image)
+                                : null;
+                        @endphp
+                        <div class="group overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_18px_45px_-30px_rgba(245,158,11,0.6)]">
+                            <div class="relative flex h-40 w-full items-center justify-center bg-stone-900/5 p-3">
+                                @if ($matchedCardSrc)
+                                    <img
+                                        src="{{ $matchedCardSrc }}"
+                                        alt="{{ $matchedItem->name }}"
+                                        class="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
+                                    />
+                                @else
+                                    <div class="text-xs font-semibold text-stone-500">
+                                        Poster missing, hype intact.
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="p-4">
+                                <div class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
+                                    {{ $matchedItem?->year }} · {{ $matchedItem?->duration }}
+                                </div>
+                                <div class="mt-2 text-base font-semibold text-stone-900">
+                                    {{ $matchedItem?->name ?? 'Movie night hero' }}
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
     </div>
 
     <div
