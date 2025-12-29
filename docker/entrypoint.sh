@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Send deployment starting notification
+if [ -x /usr/local/bin/notify-discord.sh ]; then
+  /usr/local/bin/notify-discord.sh starting
+fi
+
 echo "🚀 Starting Laravel application setup..."
 
 # Create .env file if it doesn't exist
@@ -63,5 +68,10 @@ if [ "${APP_ENV:-local}" != "local" ]; then
 fi
 
 echo "✅ Application setup complete!"
+
+# Send deployment success notification
+if [ -x /usr/local/bin/notify-discord.sh ]; then
+  /usr/local/bin/notify-discord.sh success
+fi
 
 exec "$@"

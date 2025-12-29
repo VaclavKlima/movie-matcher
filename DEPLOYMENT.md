@@ -41,10 +41,12 @@ docker-compose logs -f
    ```
    APP_URL=https://your-domain.com
    CLOUDFLARE_TUNNEL_TOKEN=your-tunnel-token-here
+   DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
    ```
    Replace:
    - `your-domain.com` with your actual domain (e.g., `moviematcher.example.com`)
    - `your-tunnel-token-here` with the token from Cloudflare (the long string after `--token` in the command)
+   - Discord webhook URL with your actual webhook URL (optional - for deployment notifications)
 7. Click **"Deploy the stack"**
 
 ### What Happens on First Deploy
@@ -286,6 +288,63 @@ This way, your app is **only** accessible via the Cloudflare Tunnel, not directl
 
 ---
 
+## Discord Deployment Notifications
+
+### What are Discord Notifications?
+
+Get real-time notifications in your Discord server whenever your app is deployed or updated. You'll receive:
+- 🚀 **Deployment Starting** - When the deployment begins
+- ✅ **Deployment Successful** - When deployment completes successfully
+- ❌ **Deployment Failed** - If deployment encounters an error
+
+Each notification includes:
+- Environment (production/local)
+- Git commit hash
+- Git branch
+- Application URL
+- Timestamp
+
+### Setup Discord Webhook
+
+#### 1. Create a Discord Webhook
+
+1. Open your Discord server
+2. Go to **Server Settings** → **Integrations** → **Webhooks**
+3. Click **"New Webhook"**
+4. Name it (e.g., "MovieMatcher Deployments")
+5. Select the channel where you want notifications
+6. Click **"Copy Webhook URL"**
+
+Your webhook URL will look like:
+```
+https://discord.com/api/webhooks/1234567890/AbCdEfGhIjKlMnOpQrStUvWxYz...
+```
+
+#### 2. Add to Portainer Environment Variables
+
+In your Portainer stack's environment variables, add:
+```
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+```
+
+#### 3. Deploy/Redeploy
+
+Click **"Pull and redeploy"** and you'll immediately get a notification in Discord!
+
+### Testing Notifications
+
+After setting up the webhook, redeploy your stack to test:
+1. In Portainer, click **"Pull and redeploy"**
+2. Watch your Discord channel for notifications:
+   - First: "🚀 Deployment Starting"
+   - Then: "✅ Deployment Successful" (if successful)
+
+### Disabling Notifications
+
+Simply remove the `DISCORD_WEBHOOK_URL` environment variable from your Portainer stack and redeploy. The app will continue to work without sending notifications.
+
+---
+
 ## Environment Variables
 
 Key environment variables you can override in Portainer:
@@ -296,6 +355,7 @@ Key environment variables you can override in Portainer:
 | `APP_DEBUG` | `false` | `false` | Yes |
 | `APP_URL` | `http://localhost:8000` | `https://your-domain.com` | Yes |
 | `CLOUDFLARE_TUNNEL_TOKEN` | *(none)* | Your tunnel token | **Yes** (for tunnel) |
+| `DISCORD_WEBHOOK_URL` | *(none)* | Your Discord webhook URL | No (optional) |
 | `LOG_LEVEL` | `debug` | `error` or `warning` | No |
 
 ---

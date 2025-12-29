@@ -4,6 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
         unzip \
+        curl \
         libicu-dev \
         libonig-dev \
         libsqlite3-dev \
@@ -28,6 +29,7 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY docker/notify-discord.sh /usr/local/bin/notify-discord.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/notify-discord.sh
 
 ENTRYPOINT ["entrypoint.sh"]
