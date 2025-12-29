@@ -9,10 +9,18 @@ services:
       - storage-data:/var/www/html/storage
       - database-data:/var/www/html/database
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      APP_URL: http://localhost:8000
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost:8000}
     command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    restart: unless-stopped
+    depends_on:
+      - app
 
 volumes:
   storage-data:

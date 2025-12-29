@@ -37,12 +37,14 @@ docker-compose logs -f
 3. **Enter your Git repository URL**
 4. **Set the repository reference** (branch): `main`
 5. **Compose path**: `docker-compose.yml`
-6. **Environment variables** (override defaults):
+6. **Environment variables**:
    ```
-   APP_ENV=production
-   APP_DEBUG=false
    APP_URL=https://your-domain.com
+   CLOUDFLARE_TUNNEL_TOKEN=your-tunnel-token-here
    ```
+   Replace:
+   - `your-domain.com` with your actual domain (e.g., `moviematcher.example.com`)
+   - `your-tunnel-token-here` with the token from Cloudflare (the long string after `--token` in the command)
 7. Click **"Deploy the stack"**
 
 ### What Happens on First Deploy
@@ -155,16 +157,146 @@ php artisan migrate:fresh --force  # ⚠️ Warning: drops all tables
 
 ---
 
+## Cloudflare Tunnel Setup
+
+### What is Cloudflare Tunnel?
+
+Cloudflare Tunnel creates a secure connection between your server and Cloudflare's network without exposing your server's IP address or opening firewall ports. Your app is accessible via your custom domain with Cloudflare's security and CDN benefits.
+
+### Prerequisites
+
+1. **Cloudflare account** with a domain added
+2. **Cloudflare Tunnel created** in the Cloudflare dashboard
+   - Go to: Cloudflare Dashboard → Zero Trust → Access → Tunnels
+   - Click "Create a tunnel"
+   - Name your tunnel (e.g., "moviematcher")
+   - Copy the tunnel token (long string starting with `eyJ...`)
+
+### Setup Steps
+
+#### 1. Configure Public Hostname in Cloudflare
+
+In your Cloudflare Tunnel settings:
+- **Public hostname**: `moviematcher.yourdomain.com` (or your preferred subdomain)
+- **Service Type**: `HTTP`
+- **URL**: `app:8000` (this connects to your Docker container via internal network)
+
+#### 2. Add Environment Variable in Portainer
+
+In your Portainer stack's environment variables:
+```
+CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoiMzMyNGJlYWZkYTFmODRjNzYwNWQ3ZmU2OTdmZDM1Y2YiLCJ0IjoiNGRiMWQ3NjEtZGQwYi00ZTk4LTkyZTktYTdiMDFlNjY4ZTc3IiwicyI6IlptWTVaR1l4TmpndE4ySmtOaTAwWkRFeExXRmxNbU10TjJaaVpHSmtOamMzTURFMiJ9
+APP_URL=https://moviematcher.yourdomain.com
+```
+
+Replace:
+- The token with **your actual token** from Cloudflare
+- The APP_URL with **your actual domain**
+
+#### 3. Deploy/Redeploy Stack
+
+Click **"Pull and redeploy"** in Portainer. The `cloudflared` container will start and connect to Cloudflare.
+
+#### 4. Verify Connection
+
+1. **Check tunnel status** in Cloudflare Dashboard → Zero Trust → Access → Tunnels
+   - Status should show "HEALTHY" with a green indicator
+2. **Visit your domain**: `https://moviematcher.yourdomain.com`
+   - Your app should be accessible!
+
+### Viewing Cloudflare Tunnel Logs
+
+In Portainer:
+1. Go to **Containers**
+2. Find the `cloudflared` container (e.g., `moviematcher-cloudflared-1`)
+3. Click **"Logs"** to see connection status
+
+Expected log output when working:
+```
+INF Connection registered connIndex=0
+INF Connection registered connIndex=1
+INF Connection registered connIndex=2
+INF Connection registered connIndex=3
+```
+
+### Updating Tunnel Configuration
+
+If you need to change your domain or tunnel settings:
+
+1. **Update in Cloudflare Dashboard**:
+   - Go to your tunnel settings
+   - Update the public hostname or service URL
+
+2. **Update APP_URL in Portainer**:
+   - Edit your stack's environment variables
+   - Update `APP_URL` to match your new domain
+   - Click **"Update the stack"**
+
+### Troubleshooting Cloudflare Tunnel
+
+#### Tunnel shows "DOWN" in Cloudflare Dashboard
+```bash
+# Check cloudflared container logs
+docker logs moviematcher-cloudflared-1
+
+# Common issues:
+# - Invalid token → Check CLOUDFLARE_TUNNEL_TOKEN in Portainer
+# - Network issues → Check container can access internet
+# - App container not running → Check app container is healthy
+```
+
+#### "502 Bad Gateway" when accessing domain
+```bash
+# The tunnel is working but can't reach your app
+# Check the Service URL in Cloudflare Tunnel settings:
+# - Should be: app:8000
+# - NOT: localhost:8000 or 127.0.0.1:8000
+
+# Verify app container is running:
+docker ps | grep moviematcher-app
+
+# Check app container logs:
+docker logs moviematcher-app-1
+```
+
+#### "Unable to reach origin" error
+- Make sure your app container is named `app` (or update Service URL in Cloudflare)
+- Verify the `depends_on: - app` configuration in docker-compose.yml
+- Check both containers are in the same Docker network
+
+### Security Notes
+
+- ✅ Your server's IP address is hidden behind Cloudflare
+- ✅ SSL/TLS is handled automatically by Cloudflare
+- ✅ No need to open port 8000 to the internet (tunnel only)
+- ✅ Cloudflare's DDoS protection is enabled
+- ⚠️ Keep your tunnel token secret (don't commit it to Git)
+
+### Optional: Remove Public Port Exposure
+
+For maximum security, you can remove the public port mapping since traffic goes through the tunnel:
+
+**In docker-compose.yml**, remove or comment out:
+```yaml
+# ports:
+#   - "8000:8000"
+```
+
+This way, your app is **only** accessible via the Cloudflare Tunnel, not directly on port 8000.
+
+---
+
 ## Environment Variables
 
 Key environment variables you can override in Portainer:
 
-| Variable | Default | Production Value |
-|----------|---------|------------------|
-| `APP_ENV` | `local` | `production` |
-| `APP_DEBUG` | `true` | `false` |
-| `APP_URL` | `http://localhost:8000` | `https://your-domain.com` |
-| `LOG_LEVEL` | `debug` | `error` or `warning` |
+| Variable | Default | Production Value | Required |
+|----------|---------|------------------|----------|
+| `APP_ENV` | `production` | `production` | Yes |
+| `APP_DEBUG` | `false` | `false` | Yes |
+| `APP_URL` | `http://localhost:8000` | `https://your-domain.com` | Yes |
+| `CLOUDFLARE_TUNNEL_TOKEN` | *(none)* | Your tunnel token | **Yes** (for tunnel) |
+| `LOG_LEVEL` | `debug` | `error` or `warning` | No |
 
 ---
 
