@@ -47,8 +47,34 @@
                     </div>
                 </div>
             </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+            <div class="relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-5 text-sm shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                <div class="flex items-center justify-between">
+                    <div class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                        Database Stats
+                    </div>
+                </div>
+                <div class="mt-4 grid gap-2 text-neutral-900 dark:text-neutral-100">
+                    <div class="flex items-center justify-between">
+                        <span>Driver</span>
+                        <span class="font-semibold">{{ $movieStats['db_driver'] ?? 'N/A' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Database</span>
+                        <span class="font-semibold">{{ $movieStats['db_name'] ?? 'N/A' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Total tables</span>
+                        <span class="font-semibold">
+                            {{ ($movieStats['db_tables_total'] ?? null) === null ? 'N/A' : number_format($movieStats['db_tables_total']) }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>DB size</span>
+                        <span class="font-semibold">
+                            {{ ($movieStats['db_size_bytes'] ?? null) === null ? 'N/A' : number_format($movieStats['db_size_bytes'] / 1024 / 1024, 2).' MB' }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
