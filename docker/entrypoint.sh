@@ -49,11 +49,11 @@ if ! grep -q "APP_KEY=base64:" .env; then
 fi
 
 # Create database file if it doesn't exist
-if [ ! -f database/database.sqlite ]; then
+if [ ! -f database/data/database.sqlite ]; then
   echo "💾 Creating SQLite database..."
-  mkdir -p database
-  touch database/database.sqlite
-  chmod 664 database/database.sqlite
+  mkdir -p database/data
+  touch database/data/database.sqlite
+  chmod 664 database/data/database.sqlite
 fi
 
 # Clear caches before migrations (important for updates)
