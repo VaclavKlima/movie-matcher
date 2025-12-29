@@ -46,7 +46,7 @@ class ScrapeMoviesCommand extends Command
                     $node = simplexml_load_string($reader->readOuterXml());
                     yield [
                         'loc' => (string) $node->loc,
-                        'lastmod' => (string) $node->lastmod ?? null,
+                        'lastmod' => (string) ($node->lastmod ?? null),
                     ];
                 }
             }

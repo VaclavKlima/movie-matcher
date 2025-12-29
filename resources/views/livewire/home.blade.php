@@ -94,7 +94,7 @@
                             type="button"
                             :disabled="code.length < 4"
                             class="inline-flex h-12 items-center justify-center rounded-xl bg-teal-600 px-5 text-sm font-semibold text-white shadow-lg shadow-teal-600/20 transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-teal-300"
-                            x-on:click="if (code.length >= 4) { window.location = '{{ url('/rooms') }}/' + code }"
+                            x-on:click="if (code.length >= 4) { window.location = '{{ url('/rooms') }}/' + code + '/join' }"
                         >
                             Join room
                         </button>

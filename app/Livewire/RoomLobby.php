@@ -6,7 +6,6 @@ use App\Models\Room;
 use App\Models\RoomParticipant;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
@@ -27,14 +26,12 @@ class RoomLobby extends Component
 
     public function mount(?string $code = null): void
     {
-        $this->avatars = [
-            ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
-            ['id' => 'clapper', 'label' => 'Clapper', 'bg' => 'bg-slate-100', 'text' => 'text-slate-700', 'ring' => 'ring-slate-400/40'],
-            ['id' => 'reel', 'label' => 'Reel', 'bg' => 'bg-stone-900', 'text' => 'text-white', 'ring' => 'ring-stone-500/40'],
-            ['id' => 'ticket', 'label' => 'Ticket', 'bg' => 'bg-rose-100', 'text' => 'text-rose-700', 'ring' => 'ring-rose-400/40'],
-            ['id' => 'projector', 'label' => 'Projector', 'bg' => 'bg-teal-100', 'text' => 'text-teal-700', 'ring' => 'ring-teal-400/40'],
-            ['id' => 'star', 'label' => 'Star', 'bg' => 'bg-indigo-100', 'text' => 'text-indigo-700', 'ring' => 'ring-indigo-400/40'],
-        ];
+        $this->avatars = config('room.avatars', []);
+        if (! is_array($this->avatars) || $this->avatars === []) {
+            $this->avatars = [
+                ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
+            ];
+        }
 
         if (Route::is('rooms.create')) {
             $room = Room::create([
@@ -43,7 +40,7 @@ class RoomLobby extends Component
 
             Session::put('host_room_code', $room->code);
 
-            $this->redirectRoute('rooms.show', ['code' => $room->code]);
+            $this->redirectRoute('rooms.join', ['code' => $room->code]);
             return;
         }
 
@@ -53,14 +50,16 @@ class RoomLobby extends Component
             ->where('session_id', Session::getId())
             ->first();
 
-        if ($room->started_at && ! $existingParticipant) {
-            abort(403, 'This room is already matching.');
+        if (! $existingParticipant) {
+            if ($room->started_at) {
+                abort(403, 'This room is already matching.');
+            }
+
+            $this->redirectRoute('rooms.join', ['code' => $room->code]);
+            return;
         }
 
-        $participant = $existingParticipant ?? RoomParticipant::firstOrCreate(
-            ['room_id' => $room->id, 'session_id' => Session::getId()],
-            ['avatar' => $this->avatar, 'is_host' => $isHost, 'last_seen_at' => Carbon::now()]
-        );
+        $participant = $existingParticipant;
         if ($isHost && ! $participant->is_host) {
             $participant->update(['is_host' => true]);
         }
@@ -68,14 +67,11 @@ class RoomLobby extends Component
             $participant->update(['is_ready' => true]);
             $participant->is_ready = true;
         }
-        if ($participant->wasRecentlyCreated && empty($participant->name)) {
-            $participant->update(['name' => $this->randomDefaultName()]);
-        }
 
         $this->roomId = $room->id;
         $this->participantId = $participant->id;
         $this->roomCode = $room->code;
-        $this->shareUrl = url('/rooms/'.$room->code);
+        $this->shareUrl = route('rooms.join', ['code' => $room->code]);
         $this->name = $participant->name ?? '';
         $this->avatar = $participant->avatar ?? $this->avatar;
         $this->isHost = $isHost;
@@ -233,13 +229,4 @@ class RoomLobby extends Component
             ->update(['last_seen_at' => Carbon::now()]);
     }
 
-    protected function randomDefaultName(): string
-    {
-        $names = config('room.funny_names', []);
-        if (! is_array($names) || $names === []) {
-            return 'Guest';
-        }
-
-        return Arr::random($names);
-    }
 }

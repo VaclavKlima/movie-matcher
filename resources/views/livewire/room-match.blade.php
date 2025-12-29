@@ -108,19 +108,26 @@
                             <div class="mt-2 flex flex-wrap gap-3">
                                 <span>score: {{ $debugSuggestMeta['score'] ?? 0 }}</span>
                                 <span>room likes: {{ $debugSuggestMeta['room_likes'] ?? 0 }}</span>
-                                <span>genre matches: {{ $debugSuggestMeta['genre_match'] ?? 0 }}</span>
+                                <span>genre score: {{ $debugSuggestMeta['genre_score'] ?? 0 }}</span>
                                 <span>year match: {{ $debugSuggestMeta['year_match'] ?? 0 }}</span>
+                                <span>total score: {{ $debugSuggestMeta['total_score'] ?? 0 }}</span>
                             </div>
                             <div class="mt-2 text-[11px] text-stone-500">
                                 weights: room {{ $debugSuggestMeta['weights']['room_likes'] ?? 0 }},
-                                genre {{ $debugSuggestMeta['weights']['genre_match'] ?? 0 }},
+                                genre {{ $debugSuggestMeta['weights']['genre_score'] ?? 0 }},
                                 year {{ $debugSuggestMeta['weights']['year_match'] ?? 0 }}
                             </div>
                         </div>
                     @endif
                     @if ($lastChoice)
+                        @php
+                            $messageOptions = config('room.last_choice_messages.'.$lastChoice, []);
+                            $lastChoiceMessage = $messageOptions !== []
+                                ? \Illuminate\Support\Arr::random($messageOptions)
+                                : '';
+                        @endphp
                         <div class="mt-4 rounded-xl border border-dashed border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-                            {{ $lastChoice === 'up' ? 'You gave it a thumbs up. Bold choice.' : 'You passed. The director is devastated.' }}
+                            {{ $lastChoiceMessage }}
                         </div>
                     @endif
                 @else
