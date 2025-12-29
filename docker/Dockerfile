@@ -16,8 +16,9 @@ RUN apt-get update \
         mbstring \
         pdo \
         pdo_sqlite \
-        xml \
         dom \
+    && docker-php-ext-install \
+        xml \
         xmlreader \
         simplexml \
         zip \
