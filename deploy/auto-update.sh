@@ -83,6 +83,12 @@ deploy_via_docker_compose() {
   log "→ Pulling latest code..."
   git reset --hard origin/main 2>&1 | tee -a "$LOG_FILE"
 
+  # Get Git info for build args
+  export GIT_COMMIT=$(git rev-parse HEAD)
+  export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+  log "→ Git info: commit=${GIT_COMMIT:0:7}, branch=$GIT_BRANCH"
+
   # Rebuild and restart
   log "→ Rebuilding containers..."
   docker-compose down 2>&1 | tee -a "$LOG_FILE"

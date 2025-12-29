@@ -13,9 +13,17 @@ fi
 # Get current timestamp
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-# Get git information if available
-GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+# Get git information from environment variables (set at build time)
+# Fallback to trying git commands if env vars not set
+if [ -n "$GIT_COMMIT" ] && [ "$GIT_COMMIT" != "unknown" ]; then
+  GIT_COMMIT_SHORT="${GIT_COMMIT:0:7}"
+else
+  GIT_COMMIT_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+fi
+
+if [ -z "$GIT_BRANCH" ] || [ "$GIT_BRANCH" = "main" ]; then
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+fi
 
 case "$MESSAGE_TYPE" in
   starting)
@@ -55,7 +63,7 @@ JSON_PAYLOAD=$(cat <<EOF
       },
       {
         "name": "Git Commit",
-        "value": "\`$GIT_COMMIT\`",
+        "value": "\`$GIT_COMMIT_SHORT\`",
         "inline": true
       },
       {
