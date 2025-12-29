@@ -11,15 +11,14 @@ RUN apt-get update \
         libzip-dev \
         nodejs \
         npm \
-    && docker-php-ext-install dom \
-    && docker-php-ext-install \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install -j$(nproc) \
         intl \
         mbstring \
         pdo \
         pdo_sqlite \
-        xmlreader \
-        zip \
-    && rm -rf /var/lib/apt/lists/*
+        zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
