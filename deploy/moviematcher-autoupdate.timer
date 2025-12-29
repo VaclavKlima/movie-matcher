@@ -1,0 +1,16 @@
+[Unit]
+Description=MovieMatcher Auto-Update Timer
+Requires=moviematcher-autoupdate.service
+
+[Timer]
+# Run 2 minutes after boot
+OnBootSec=2min
+
+# Then run every 5 minutes
+OnUnitActiveSec=5min
+
+# Run even if last activation was missed (e.g., system was off)
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=MovieMatcher Auto-Update Service
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/moviematcher
+EnvironmentFile=-/opt/moviematcher/deploy/.env
+ExecStart=/opt/moviematcher/deploy/auto-update.sh
+StandardOutput=append:/var/log/moviematcher-autoupdate.log
+StandardError=append:/var/log/moviematcher-autoupdate.log
+
+[Install]
+WantedBy=multi-user.target
