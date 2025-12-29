@@ -16,8 +16,10 @@ RUN apt-get update \
         mbstring \
         pdo \
         pdo_sqlite \
-        sqlite3 \
         xml \
+        dom \
+        xmlreader \
+        simplexml \
         zip \
     && rm -rf /var/lib/apt/lists/*
 
