@@ -94,6 +94,15 @@
                                     @endforeach
                                 </div>
                             @endif
+                            @if ($movie->actors->isNotEmpty())
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @foreach ($movie->actors as $actor)
+                                        <span class="rounded-full border border-stone-200/70 bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-600">
+                                            {{ $actor->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="mt-5 grid grid-cols-2 gap-3">
@@ -293,6 +302,15 @@
                         <p class="mt-3 text-sm text-stone-600">
                             {{ $matchedMovie->description }}
                         </p>
+                        @if ($matchedMovie->actors->isNotEmpty())
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                @foreach ($matchedMovie->actors as $actor)
+                                    <span class="rounded-full border border-stone-200/70 bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-600">
+                                        {{ $actor->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif
