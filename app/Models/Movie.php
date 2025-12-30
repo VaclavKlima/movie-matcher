@@ -15,10 +15,18 @@ class Movie extends Model
         'year',
         'duration',
         'description',
+        'average_rating',
+        'film_rank',
+        'film_popularity_rank',
     ];
 
     public function genres(): BelongsToMany
     {
         return $this->belongsToMany(Genre::class, 'movie_genre');
+    }
+
+    public function actors(): BelongsToMany
+    {
+        return $this->belongsToMany(Actor::class, 'movie_actor');
     }
 }
