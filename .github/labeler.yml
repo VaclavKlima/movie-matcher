@@ -1,0 +1,41 @@
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "resources/**"
+          - "vite.config.js"
+          - "package.json"
+          - "package-lock.json"
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "app/**"
+          - "routes/**"
+          - "database/**"
+          - "config/**"
+          - "composer.json"
+          - "composer.lock"
+          - "artisan"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docker/**"
+          - "docker-compose.yml"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "README.md"
+          - "DEPLOYMENT.md"
+          - "AGENTS.md"
