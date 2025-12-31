@@ -94,7 +94,6 @@ class RoomJoin extends Component
 
         $this->redirectRoute('rooms.show', ['code' => $room->code]);
 
-        return;
     }
 
     public function render(): View

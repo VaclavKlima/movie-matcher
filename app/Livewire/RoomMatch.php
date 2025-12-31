@@ -156,7 +156,6 @@ class RoomMatch extends Component
 
         $this->redirectRoute('rooms.stats', ['code' => $this->roomCode]);
 
-        return;
     }
 
     public function refreshState(): void
@@ -240,7 +239,6 @@ class RoomMatch extends Component
 
         $this->redirectRoute('home');
 
-        return;
     }
 
     public function render()
