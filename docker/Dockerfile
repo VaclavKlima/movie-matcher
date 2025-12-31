@@ -1,4 +1,4 @@
-FROM php:8.2-cli
+FROM php:8.4-cli
 
 # Accept Git information as build arguments
 ARG GIT_COMMIT=unknown
