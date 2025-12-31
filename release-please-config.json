@@ -3,7 +3,13 @@
     ".": {
       "release-type": "php",
       "package-name": "moviematcher",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "config/version.php"
+        }
+      ]
     }
   }
 }

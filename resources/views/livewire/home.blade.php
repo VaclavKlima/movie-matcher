@@ -28,7 +28,7 @@
             {{-- Brand Badge --}}
             <div class="inline-flex items-center gap-2.5 rounded-full border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-400/10 px-5 py-2.5 text-xs font-bold uppercase tracking-[0.25em] text-amber-300 shadow-lg shadow-amber-500/20 backdrop-blur-sm">
                 <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-amber-400"></span>
-                MovieMatcher
+                Movie Matcher
             </div>
 
             {{-- Marquee Title --}}

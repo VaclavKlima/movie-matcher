@@ -129,6 +129,13 @@
 
         {{ $slot }}
 
+        <footer class="border-t border-zinc-200 bg-white px-6 py-4 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
+            <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
+                <span>{{ config('app.name') }}</span>
+                <span>Version {{ config('version.app') }}</span>
+            </div>
+        </footer>
+
         @fluxScripts
     </body>
 </html>

@@ -1,5 +1,9 @@
 <x-layouts.app :title="__('Dashboard')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
+        <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+            <span>Overview</span>
+            <span>Version {{ config('version.app') }}</span>
+        </div>
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
             <div class="relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-5 text-sm shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <div class="flex items-center justify-between">
