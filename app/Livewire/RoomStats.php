@@ -2,17 +2,18 @@
 
 namespace App\Livewire;
 
+use App\Models\Movie;
+use App\Models\MovieVote;
 use App\Models\Room;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
-use App\Models\Movie;
-use App\Models\MovieVote;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class RoomStats extends Component
 {
     public int $roomId;
+
     public string $roomCode = '';
 
     public function mount(?string $code = null): void
