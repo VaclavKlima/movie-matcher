@@ -37,9 +37,6 @@ jobs:
       - name: Run Pint
         run: ./vendor/bin/pint --test
 
-      - name: Run PHP tests
-        run: php artisan test
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -48,6 +45,12 @@ jobs:
 
       - name: Install Node dependencies
         run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run PHP tests
+        run: php artisan test
 
       - name: Run ESLint
         run: npm run lint
