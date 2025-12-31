@@ -9,6 +9,7 @@ use App\Models\Movie;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
@@ -69,9 +70,6 @@ class RoomMatch extends Component
         }
 
         $movieId = $this->currentMovieId;
-        if (! $movieId) {
-            return;
-        }
 
         MovieVote::updateOrCreate(
             [
@@ -90,6 +88,7 @@ class RoomMatch extends Component
 
         $this->checkForMatch($movieId);
         $this->loadRandomMovie();
+        Cache::tags(["movie_matcher_room_{$this->roomId}"])->flush();
     }
 
     public function continueHunting(): void
