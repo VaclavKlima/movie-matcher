@@ -4,6 +4,7 @@ export default [
     {
         ignores: [
             'bootstrap/cache/**',
+            'commitlint.config.cjs',
             'node_modules/**',
             'public/build/**',
             'storage/**',
