@@ -2,10 +2,10 @@
 
 namespace App\Livewire;
 
-use App\Models\Room;
 use App\Actions\SuggestMovie;
-use App\Models\MovieVote;
 use App\Models\Movie;
+use App\Models\MovieVote;
+use App\Models\Room;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
 use Illuminate\Support\Carbon;
@@ -16,16 +16,27 @@ use Livewire\Component;
 class RoomMatch extends Component
 {
     public int $roomId;
+
     public int $participantId;
+
     public string $roomCode = '';
+
     public bool $isHost = false;
+
     public ?int $currentMovieId = null;
+
     public ?string $lastChoice = null;
+
     public ?string $lastChoiceMessage = null;
+
     public bool $showMatchModal = false;
+
     public ?int $matchedMovieId = null;
+
     public bool $debugSuggest = false;
+
     public array $debugSuggestMeta = [];
+
     public ?string $lastContinueRequestedAt = null;
 
     public function mount(?string $code = null): void
@@ -38,6 +49,7 @@ class RoomMatch extends Component
 
         if (! $room->started_at) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
+
             return;
         }
 
@@ -112,6 +124,7 @@ class RoomMatch extends Component
 
         if (! $participant || $participant->kicked_at !== null) {
             $this->redirectRoute('home');
+
             return;
         }
 
@@ -121,11 +134,13 @@ class RoomMatch extends Component
 
         if (! $room) {
             $this->redirectRoute('home');
+
             return;
         }
 
         if (! $room->started_at) {
             $this->redirectRoute('rooms.show', ['code' => $this->roomCode]);
+
             return;
         }
 
@@ -144,11 +159,12 @@ class RoomMatch extends Component
         if ($room->matched_movie_id && $room->matched_movie_id !== $this->matchedMovieId) {
             $this->matchedMovieId = $room->matched_movie_id;
             $this->showMatchModal = true;
+
             return;
         }
 
         // Close modal if match was cleared
-        if ($this->showMatchModal && !$room->matched_movie_id) {
+        if ($this->showMatchModal && ! $room->matched_movie_id) {
             $this->showMatchModal = false;
             $this->matchedMovieId = null;
         }
@@ -163,6 +179,7 @@ class RoomMatch extends Component
         $room = Room::find($this->roomId);
         if (! $room) {
             $this->redirectRoute('home');
+
             return;
         }
 
@@ -173,7 +190,7 @@ class RoomMatch extends Component
         $room->delete();
 
         $this->redirectRoute('home');
-        return;
+
     }
 
     public function render()
@@ -208,6 +225,7 @@ class RoomMatch extends Component
             $result = app(SuggestMovie::class)->executeWithDebug($this->roomId, $this->participantId);
             $this->currentMovieId = $result['id'];
             $this->debugSuggestMeta = $result;
+
             return;
         }
 

@@ -31,7 +31,7 @@ class ScrapeMoviesCommand extends Command
 
             $this->streamLocsFromXml($siteMap->body(), function (string $loc) use (&$sitemapIndex, &$totals): void {
                 $sitemapIndex++;
-                $this->info('Sitemap ' . $sitemapIndex . ': ' . $loc);
+                $this->info('Sitemap '.$sitemapIndex.': '.$loc);
 
                 $counts = $this->processSitemapUrl($loc);
 
@@ -39,14 +39,14 @@ class ScrapeMoviesCommand extends Command
                 $totals['skipped_episode'] += $counts['skipped_episode'];
                 $totals['skipped_non_film'] += $counts['skipped_non_film'];
 
-                $this->info('Sitemap ' . $sitemapIndex . ' done: dispatched ' . $counts['dispatched']
-                    . ', skipped episodes ' . $counts['skipped_episode']
-                    . ', skipped non-film ' . $counts['skipped_non_film']);
+                $this->info('Sitemap '.$sitemapIndex.' done: dispatched '.$counts['dispatched']
+                    .', skipped episodes '.$counts['skipped_episode']
+                    .', skipped non-film '.$counts['skipped_non_film']);
             });
 
-            $this->info('All done: dispatched ' . $totals['dispatched']
-                . ', skipped episodes ' . $totals['skipped_episode']
-                . ', skipped non-film ' . $totals['skipped_non_film']);
+            $this->info('All done: dispatched '.$totals['dispatched']
+                .', skipped episodes '.$totals['skipped_episode']
+                .', skipped non-film '.$totals['skipped_non_film']);
         } else {
             $this->error('Failed to fetch the sitemap.');
         }
@@ -61,18 +61,20 @@ class ScrapeMoviesCommand extends Command
         ];
 
         $this->streamLocsFromUrl($loc, function (string $movieLoc) use (&$counts): void {
-            if (!str_starts_with($movieLoc, 'https://www.csfd.cz/film')) {
+            if (! str_starts_with($movieLoc, 'https://www.csfd.cz/film')) {
                 $counts['skipped_non_film']++;
+
                 return;
             }
 
             if ($this->isSeriesEpisodeUrl($movieLoc)) {
                 $counts['skipped_episode']++;
+
                 return;
             }
 
             if ($this->getOutput()->isVerbose()) {
-                $this->info('Processing item: ' . $movieLoc);
+                $this->info('Processing item: '.$movieLoc);
             }
 
             ScrapeMovieJob::dispatch($movieLoc);
@@ -84,7 +86,7 @@ class ScrapeMoviesCommand extends Command
 
     private function streamLocsFromUrl(string $loc, callable $handleLoc): void
     {
-        $reader = new \XMLReader();
+        $reader = new \XMLReader;
         $reader->open($loc);
 
         $this->streamLocsFromReader($reader, $handleLoc);
@@ -93,7 +95,7 @@ class ScrapeMoviesCommand extends Command
 
     private function streamLocsFromXml(string $xml, callable $handleLoc): void
     {
-        $reader = new \XMLReader();
+        $reader = new \XMLReader;
         $reader->XML($xml);
 
         $this->streamLocsFromReader($reader, $handleLoc);
@@ -113,7 +115,7 @@ class ScrapeMoviesCommand extends Command
         $path = parse_url($url, PHP_URL_PATH) ?? '';
         $path = trim($path, '/');
 
-        if (!str_starts_with($path, 'film/')) {
+        if (! str_starts_with($path, 'film/')) {
             return false;
         }
 

@@ -18,9 +18,7 @@ class ScrapeMovieJob implements ShouldQueue
 
     public function __construct(
         public string $url,
-    )
-    {
-    }
+    ) {}
 
     public function handle()
     {
@@ -50,7 +48,7 @@ class ScrapeMovieJob implements ShouldQueue
 
         $movie = Movie::create([
             'name' => $name,
-            'poster_image' => base64_encode(file_get_contents('https:' . $filmPosterUrl)),
+            'poster_image' => base64_encode(file_get_contents('https:'.$filmPosterUrl)),
             'country' => trim($country),
             'year' => trim($year),
             'duration' => trim(preg_replace('/\s+/', ' ', $duration)),
@@ -67,7 +65,7 @@ class ScrapeMovieJob implements ShouldQueue
     private function loadXPath(string $url): \DOMXPath
     {
         $html = Http::get($url);
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument;
         @$dom->loadHTML($html);
 
         return new \DOMXPath($dom);
@@ -148,6 +146,7 @@ class ScrapeMovieJob implements ShouldQueue
                 if (preg_match('/\b(\d{1,7})\b/', $rankingText, $matches)) {
                     $filmRank = (int) $matches[1];
                 }
+
                 continue;
             }
 

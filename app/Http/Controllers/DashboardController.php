@@ -53,7 +53,6 @@ class DashboardController extends Controller
                 GROUP BY table_schema
             ')->size_mb * 1024 * 1024;
 
-
             return [
                 'movies_total' => Movie::count(),
                 'votes_total' => MovieVote::count(),

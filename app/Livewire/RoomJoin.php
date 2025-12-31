@@ -14,8 +14,11 @@ use Livewire\Component;
 class RoomJoin extends Component
 {
     public string $roomCode = '';
+
     public string $name = '';
+
     public string $avatar = 'popcorn';
+
     public array $avatars = [];
 
     public function mount(?string $code = null): void
@@ -27,6 +30,7 @@ class RoomJoin extends Component
 
         if ($existingParticipant) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
+
             return;
         }
 
@@ -58,6 +62,7 @@ class RoomJoin extends Component
 
         if ($existingParticipant) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
+
             return;
         }
 
@@ -78,7 +83,7 @@ class RoomJoin extends Component
         ]);
 
         $this->redirectRoute('rooms.show', ['code' => $room->code]);
-        return;
+
     }
 
     public function render(): View

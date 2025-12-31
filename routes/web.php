@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Livewire\Home;
 use App\Livewire\RoomJoin;
 use App\Livewire\RoomLobby;
 use App\Livewire\RoomMatch;
-use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -26,4 +26,4 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

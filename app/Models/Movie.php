@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Movie extends Model
 {
-
     protected $fillable = [
         'name',
         'poster_image',

@@ -21,6 +21,7 @@ class CreateAdminUserCommand extends Command
         $email = $this->argument('email') ?: $this->ask('Admin email');
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->error('Invalid email address.');
+
             return self::FAILURE;
         }
 
@@ -32,18 +33,21 @@ class CreateAdminUserCommand extends Command
             $confirm = $this->secret('Confirm password');
             if ($password !== $confirm) {
                 $this->error('Passwords do not match.');
+
                 return self::FAILURE;
             }
         }
 
         if (! $this->isStrongPassword($password)) {
             $this->error('Password must be at least 12 characters and include upper, lower, and digits.');
+
             return self::FAILURE;
         }
 
         $existing = User::where('email', $email)->first();
         if ($existing && ! $this->option('force')) {
             $this->error('User already exists. Use --force to update.');
+
             return self::FAILURE;
         }
 

@@ -13,15 +13,25 @@ use Livewire\Component;
 class RoomLobby extends Component
 {
     public int $roomId;
+
     public int $participantId;
+
     public string $roomCode = '';
+
     public string $shareUrl = '';
+
     public string $name = '';
+
     public string $avatar = 'popcorn';
+
     public bool $isHost = false;
+
     public bool $isKicked = false;
+
     public bool $isReady = false;
+
     public array $avatars = [];
+
     public array $knownParticipantIds = [];
 
     public function mount(?string $code = null): void
@@ -41,6 +51,7 @@ class RoomLobby extends Component
             Session::put('host_room_code', $room->code);
 
             $this->redirectRoute('rooms.join', ['code' => $room->code]);
+
             return;
         }
 
@@ -56,6 +67,7 @@ class RoomLobby extends Component
             }
 
             $this->redirectRoute('rooms.join', ['code' => $room->code]);
+
             return;
         }
 
@@ -86,6 +98,7 @@ class RoomLobby extends Component
 
         if ($room->started_at && ! $this->isKicked) {
             $this->redirectRoute('rooms.match', ['code' => $room->code]);
+
             return;
         }
     }
@@ -113,12 +126,14 @@ class RoomLobby extends Component
         $currentParticipant = RoomParticipant::where('id', $this->participantId)->first();
         if (! $currentParticipant || $currentParticipant->kicked_at !== null) {
             $this->isKicked = true;
+
             return;
         }
 
         $roomStarted = Room::where('id', $this->roomId)->value('started_at');
         if ($roomStarted) {
             $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
+
             return;
         }
 
@@ -173,6 +188,7 @@ class RoomLobby extends Component
         $room = Room::find($this->roomId);
         if (! $room) {
             $this->redirectRoute('home');
+
             return;
         }
 
@@ -183,7 +199,7 @@ class RoomLobby extends Component
         $room->delete();
 
         $this->redirectRoute('home');
-        return;
+
     }
 
     public function startMatching(): void
@@ -195,6 +211,7 @@ class RoomLobby extends Component
         $roomStarted = Room::where('id', $this->roomId)->value('started_at');
         if ($roomStarted) {
             $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
+
             return;
         }
 
@@ -250,5 +267,4 @@ class RoomLobby extends Component
         RoomParticipant::where('id', $this->participantId)
             ->update(['last_seen_at' => Carbon::now()]);
     }
-
 }
