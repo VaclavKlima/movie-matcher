@@ -215,7 +215,6 @@ class RoomLobby extends Component
 
         $this->redirectRoute('home');
 
-        return;
     }
 
     public function startMatching(): void
@@ -245,7 +244,6 @@ class RoomLobby extends Component
         Room::where('id', $this->roomId)->update(['started_at' => Carbon::now()]);
         $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
 
-        return;
     }
 
     public function toggleReady(): void
