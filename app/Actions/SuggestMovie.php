@@ -20,6 +20,12 @@ class SuggestMovie
     private const GENRE_DOMINANCE_THRESHOLD = 0.6;
     private const GENRE_DOMINANCE_MULTIPLIER = 0.6;
     private const CANDIDATE_SAMPLE_SIZE = 1000;
+    private const RATING_SCORE_WEIGHT = 0.2;
+    private const FILM_RANK_WEIGHT = 0.2;
+    private const POPULARITY_RANK_WEIGHT = 0.2;
+    private const RATING_SCORE_MAX = 5.0;
+    private const RANK_SCORE_MAX = 5.0;
+    private const RANK_SCORE_RANGE = 1000.0;
 
     public function execute(int $roomId, int $participantId): ?int
     {
@@ -39,6 +45,16 @@ class SuggestMovie
             ->where('room_participant_id', $participantId)
             ->pluck('movie_id')
             ->all();
+
+        $roomRejectedMovieIds = MovieVote::where('room_id', $roomId)
+            ->where('decision', 'down')
+            ->pluck('movie_id')
+            ->all();
+
+        $excludedMovieIds = array_values(array_unique(array_merge(
+            $seenMovieIds,
+            $roomRejectedMovieIds
+        )));
 
         $likedMovieIds = MovieVote::where('room_id', $roomId)
             ->where('decision', 'up')
@@ -94,6 +110,9 @@ class SuggestMovie
             'room_likes' => self::ROOM_LIKE_WEIGHT,
             'genre_score' => self::GENRE_SCORE_WEIGHT * $genreScoreMultiplier,
             'year_score' => self::YEAR_SCORE_WEIGHT,
+            'rating_score' => self::RATING_SCORE_WEIGHT,
+            'film_rank_score' => self::FILM_RANK_WEIGHT,
+            'film_popularity_score' => self::POPULARITY_RANK_WEIGHT,
         ];
 
         $genreScoreExpr = $hasGenreTaste ? 'coalesce(sum(genre_scores.score), 0)' : '0';
@@ -102,9 +121,15 @@ class SuggestMovie
         $yearScoreExpr = $hasYearTaste
             ? "(".self::YEAR_SCORE_MAX." - (2 * ".self::YEAR_SCORE_MAX.") * {$yearNormalizedExpr} * {$yearNormalizedExpr})"
             : '0';
+        $ratingScoreExpr = "(case when movies.average_rating is null then 0 else (".self::RATING_SCORE_MAX." * (movies.average_rating / 100.0)) end)";
+        $filmRankScoreExpr = "(case when movies.film_rank is null then 0 else (".self::RANK_SCORE_MAX." * (1 - ((movies.film_rank - 1) / ".self::RANK_SCORE_RANGE."))) end)";
+        $filmPopularityScoreExpr = "(case when movies.film_popularity_rank is null then 0 else (".self::RANK_SCORE_MAX." * (1 - ((movies.film_popularity_rank - 1) / ".self::RANK_SCORE_RANGE."))) end)";
+        $popularityScoreExpr = "({$ratingScoreExpr} + {$filmRankScoreExpr} + {$filmPopularityScoreExpr})";
 
         $sampleIds = Movie::query()
-            ->when(! empty($seenMovieIds), fn ($query) => $query->whereNotIn('movies.id', $seenMovieIds))
+            ->select('movies.id')
+            ->selectRaw($popularityScoreExpr.' as popularity_score')
+            ->when(! empty($excludedMovieIds), fn ($query) => $query->whereNotIn('movies.id', $excludedMovieIds))
             ->when($hasTaste, function ($query) use ($topGenreIds, $avgYear, $hasGenreTaste, $hasYearTaste) {
                 $query->where(function ($innerQuery) use ($topGenreIds, $avgYear, $hasGenreTaste, $hasYearTaste) {
                     if ($hasGenreTaste) {
@@ -124,7 +149,7 @@ class SuggestMovie
                     }
                 });
             })
-            ->inRandomOrder()
+            ->orderByDesc('popularity_score')
             ->limit(self::CANDIDATE_SAMPLE_SIZE)
             ->pluck('movies.id');
 
@@ -150,10 +175,16 @@ class SuggestMovie
                 DB::raw('count(distinct room_likes.room_participant_id) as room_likes_count'),
                 DB::raw($genreScoreExpr.' as genre_score'),
                 DB::raw($yearScoreExpr.' as year_score'),
+                DB::raw($ratingScoreExpr.' as rating_score'),
+                DB::raw($filmRankScoreExpr.' as film_rank_score'),
+                DB::raw($filmPopularityScoreExpr.' as film_popularity_score'),
                 DB::raw(
                     '('.$weights['room_likes'].' * count(distinct room_likes.room_participant_id) + '.
                     $weights['genre_score'].' * '.$genreScoreExpr.' + '.
-                    $weights['year_score'].' * '.$yearScoreExpr.
+                    $weights['year_score'].' * '.$yearScoreExpr.' + '.
+                    $weights['rating_score'].' * '.$ratingScoreExpr.' + '.
+                    $weights['film_rank_score'].' * '.$filmRankScoreExpr.' + '.
+                    $weights['film_popularity_score'].' * '.$filmPopularityScoreExpr.
                     ') as score'
                 ),
             ])
@@ -236,6 +267,9 @@ class SuggestMovie
                 'room_likes' => (int) $picked->room_likes_count,
                 'genre_score' => (int) $picked->genre_score,
                 'year_score' => (float) $picked->year_score,
+                'rating_score' => (float) $picked->rating_score,
+                'film_rank_score' => (float) $picked->film_rank_score,
+                'film_popularity_score' => (float) $picked->film_popularity_score,
                 'novelty_bonus' => (float) ($picked->novelty_bonus ?? 0.0),
                 'genre_score_multiplier' => (float) $genreScoreMultiplier,
                 'weights' => $weights,
@@ -244,10 +278,17 @@ class SuggestMovie
             ];
         }
 
-        $fallbackId = Movie::query()
-            ->when(! empty($seenMovieIds), fn ($query) => $query->whereNotIn('id', $seenMovieIds))
-            ->inRandomOrder()
-            ->value('id');
+        $fallbackIds = Movie::query()
+            ->select('id')
+            ->selectRaw($popularityScoreExpr.' as popularity_score')
+            ->when(! empty($excludedMovieIds), fn ($query) => $query->whereNotIn('id', $excludedMovieIds))
+            ->orderByDesc('popularity_score')
+            ->limit(200)
+            ->pluck('id');
+
+        $fallbackId = $fallbackIds->isNotEmpty()
+            ? $fallbackIds->random()
+            : null;
 
         return [
             'id' => $fallbackId,
@@ -255,6 +296,9 @@ class SuggestMovie
             'room_likes' => 0,
             'genre_score' => 0,
             'year_score' => 0,
+            'rating_score' => 0,
+            'film_rank_score' => 0,
+            'film_popularity_score' => 0,
             'novelty_bonus' => 0,
             'genre_score_multiplier' => (float) $genreScoreMultiplier,
             'weights' => $weights,
