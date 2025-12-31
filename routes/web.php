@@ -5,6 +5,7 @@ use App\Livewire\Home;
 use App\Livewire\RoomJoin;
 use App\Livewire\RoomLobby;
 use App\Livewire\RoomMatch;
+use App\Livewire\RoomStats;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -13,6 +14,7 @@ Route::get('/rooms/create', RoomLobby::class)->name('rooms.create');
 Route::get('/rooms/{code}', RoomLobby::class)->name('rooms.show');
 Route::get('/rooms/{code}/join', RoomJoin::class)->name('rooms.join');
 Route::get('/rooms/{code}/match', RoomMatch::class)->name('rooms.match');
+Route::get('/rooms/{code}/stats', RoomStats::class)->name('rooms.stats');
 
 Route::get('dashboard', [DashboardController::class, 'show'])
     ->middleware(['auth', 'verified'])

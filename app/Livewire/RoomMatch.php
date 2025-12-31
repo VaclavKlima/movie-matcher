@@ -42,6 +42,11 @@ class RoomMatch extends Component
     public function mount(?string $code = null): void
     {
         $room = Room::where('code', $code)->firstOrFail();
+        if ($room->ended_at) {
+            $this->redirectRoute('rooms.stats', ['code' => $room->code]);
+
+            return;
+        }
         $participant = RoomParticipant::where('room_id', $room->id)
             ->where('session_id', Session::getId())
             ->whereNull('kicked_at')
@@ -115,24 +120,68 @@ class RoomMatch extends Component
         ]);
     }
 
+    public function endRoomWithMatch(?int $movieId = null): void
+    {
+        if (! $this->isHost) {
+            return;
+        }
+
+        $selectedMovieId = $movieId ?? $this->matchedMovieId;
+        if (! $selectedMovieId) {
+            return;
+        }
+
+        $isMatchedMovie = RoomMovieMatch::where('room_id', $this->roomId)
+            ->where('movie_id', $selectedMovieId)
+            ->exists();
+
+        if (! $isMatchedMovie && $selectedMovieId !== $this->matchedMovieId) {
+            return;
+        }
+
+        RoomMovieMatch::updateOrCreate(
+            [
+                'room_id' => $this->roomId,
+                'movie_id' => $selectedMovieId,
+            ],
+            [
+                'matched_at' => Carbon::now(),
+            ]
+        );
+
+        Room::where('id', $this->roomId)->update([
+            'matched_movie_id' => $selectedMovieId,
+            'ended_at' => Carbon::now(),
+        ]);
+
+        $this->redirectRoute('rooms.stats', ['code' => $this->roomCode]);
+
+        return;
+    }
+
     public function refreshState(): void
     {
+        // Optimize: Only fetch needed columns
+        $room = Room::select('id', 'started_at', 'matched_movie_id', 'continue_hunting_requested_at', 'ended_at')
+            ->find($this->roomId);
+
+        if (! $room) {
+            $this->redirectRoute('home');
+
+            return;
+        }
+        if ($room->ended_at) {
+            $this->redirectRoute('rooms.stats', ['code' => $this->roomCode]);
+
+            return;
+        }
+
         // Optimize: Only fetch the columns we need
         $participant = RoomParticipant::select('id', 'kicked_at')
             ->where('id', $this->participantId)
             ->first();
 
         if (! $participant || $participant->kicked_at !== null) {
-            $this->redirectRoute('home');
-
-            return;
-        }
-
-        // Optimize: Only fetch needed columns
-        $room = Room::select('id', 'started_at', 'matched_movie_id', 'continue_hunting_requested_at')
-            ->find($this->roomId);
-
-        if (! $room) {
             $this->redirectRoute('home');
 
             return;
@@ -191,6 +240,7 @@ class RoomMatch extends Component
 
         $this->redirectRoute('home');
 
+        return;
     }
 
     public function render()

@@ -1,4 +1,4 @@
-@props(['show' => false, 'matchedMovie' => null])
+@props(['show' => false, 'matchedMovie' => null, 'isHost' => false])
 
 @if ($show)
 <div
@@ -165,14 +165,27 @@
                 </div>
             @endif
 
-            <button
-                type="button"
-                wire:click="continueHunting"
-                class="mt-6 sm:mt-8 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl sm:rounded-2xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/30 to-amber-600/30 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-amber-100 shadow-2xl shadow-amber-500/30 transition-all duration-300 hover:scale-105 hover:border-amber-400 hover:from-amber-500/40 hover:to-amber-600/40 hover:shadow-amber-500/50 active:scale-95"
-            >
-                <span>🎬</span>
-                <span>Find Another Gem</span>
-            </button>
+            <div class="mt-6 sm:mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+                <button
+                    type="button"
+                    wire:click="continueHunting"
+                    class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl sm:rounded-2xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/30 to-amber-600/30 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-amber-100 shadow-2xl shadow-amber-500/30 transition-all duration-300 hover:scale-105 hover:border-amber-400 hover:from-amber-500/40 hover:to-amber-600/40 hover:shadow-amber-500/50 active:scale-95"
+                >
+                    <span>🎬</span>
+                    <span>Find Another Gem</span>
+                </button>
+
+                @if ($isHost && $matchedMovie)
+                    <button
+                        type="button"
+                        wire:click="endRoomWithMatch({{ $matchedMovie->id }})"
+                        class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl sm:rounded-2xl border-2 border-rose-400/50 bg-gradient-to-r from-rose-500/30 to-rose-600/30 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-bold text-rose-100 shadow-2xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:border-rose-400 hover:from-rose-500/40 hover:to-rose-600/40 hover:shadow-rose-500/50 active:scale-95"
+                    >
+                        <span>🎯</span>
+                        <span>Roll Credits &amp; View Stats</span>
+                    </button>
+                @endif
+            </div>
         </div>
     </div>
 </div>

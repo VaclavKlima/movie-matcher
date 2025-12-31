@@ -326,6 +326,17 @@
                                 <h3 class="line-clamp-2 text-base font-bold text-amber-50">
                                     {{ $matchedItem?->name ?? 'Mystery Feature' }}
                                 </h3>
+
+                                @if ($isHost && $matchedItem)
+                                    <x-confirm-modal
+                                        trigger-text="🎬 Roll credits with this pick"
+                                        trigger-class="mt-2 w-full rounded-xl border-2 border-rose-400/50 bg-gradient-to-r from-rose-500/20 to-rose-600/20 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-rose-200 transition hover:border-rose-400 hover:from-rose-500/30 hover:to-rose-600/30 hover:shadow-lg hover:shadow-rose-500/20"
+                                        title="🎬 Final feature unlocked?"
+                                        message="The curtains close on this pick, and everyone heads to the stats lobby."
+                                        confirm-text="Yes, roll credits"
+                                        confirm-action="endRoomWithMatch({{ $matchedItem->id }})"
+                                    />
+                                @endif
                             </div>
 
                             {{-- Spotlight effect on hover --}}
@@ -339,6 +350,6 @@
 
     {{-- Match Modal --}}
     <div wire:key="match-modal-{{ $showMatchModal }}-{{ $matchedMovieId }}">
-        <x-match-modal :show="$showMatchModal" :matched-movie="$matchedMovie" />
+        <x-match-modal :show="$showMatchModal" :matched-movie="$matchedMovie" :is-host="$isHost" />
     </div>
 </div>

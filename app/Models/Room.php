@@ -14,11 +14,13 @@ class Room extends Model
         'current_movie_id',
         'matched_movie_id',
         'continue_hunting_requested_at',
+        'ended_at',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
         'continue_hunting_requested_at' => 'datetime',
+        'ended_at' => 'datetime',
     ];
 
     public function participants(): HasMany

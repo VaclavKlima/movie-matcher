@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'inactive_after_minutes' => 15,
     'funny_names' => [
         'The Fast and the Curious',
         'Jurassic Bark',

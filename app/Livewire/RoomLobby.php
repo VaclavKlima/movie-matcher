@@ -56,6 +56,11 @@ class RoomLobby extends Component
         }
 
         $room = Room::where('code', $code)->firstOrFail();
+        if ($room->ended_at) {
+            $this->redirectRoute('rooms.stats', ['code' => $room->code]);
+
+            return;
+        }
         $isHost = Session::get('host_room_code') === $room->code;
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
             ->where('session_id', Session::getId())
@@ -123,15 +128,25 @@ class RoomLobby extends Component
 
     public function refreshParticipants(): void
     {
+        $room = Room::select('started_at', 'ended_at')->find($this->roomId);
+        if (! $room) {
+            $this->redirectRoute('home');
+
+            return;
+        }
+        if ($room->ended_at) {
+            $this->redirectRoute('rooms.stats', ['code' => $this->roomCode]);
+
+            return;
+        }
+
         $currentParticipant = RoomParticipant::where('id', $this->participantId)->first();
         if (! $currentParticipant || $currentParticipant->kicked_at !== null) {
             $this->isKicked = true;
 
             return;
         }
-
-        $roomStarted = Room::where('id', $this->roomId)->value('started_at');
-        if ($roomStarted) {
+        if ($room->started_at) {
             $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
 
             return;
@@ -200,6 +215,7 @@ class RoomLobby extends Component
 
         $this->redirectRoute('home');
 
+        return;
     }
 
     public function startMatching(): void
@@ -228,6 +244,8 @@ class RoomLobby extends Component
 
         Room::where('id', $this->roomId)->update(['started_at' => Carbon::now()]);
         $this->redirectRoute('rooms.match', ['code' => $this->roomCode]);
+
+        return;
     }
 
     public function toggleReady(): void

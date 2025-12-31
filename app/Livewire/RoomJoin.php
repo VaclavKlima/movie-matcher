@@ -24,6 +24,11 @@ class RoomJoin extends Component
     public function mount(?string $code = null): void
     {
         $room = Room::where('code', $code)->firstOrFail();
+        if ($room->ended_at) {
+            $this->redirectRoute('rooms.stats', ['code' => $room->code]);
+
+            return;
+        }
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
             ->where('session_id', Session::getId())
             ->first();
@@ -56,6 +61,11 @@ class RoomJoin extends Component
         ]);
 
         $room = Room::where('code', $this->roomCode)->firstOrFail();
+        if ($room->ended_at) {
+            $this->redirectRoute('rooms.stats', ['code' => $room->code]);
+
+            return;
+        }
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
             ->where('session_id', Session::getId())
             ->first();
@@ -84,6 +94,7 @@ class RoomJoin extends Component
 
         $this->redirectRoute('rooms.show', ['code' => $room->code]);
 
+        return;
     }
 
     public function render(): View
