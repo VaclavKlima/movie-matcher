@@ -16,6 +16,14 @@ export default [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
+      globals: {
+        Alpine: "readonly",
+        document: "readonly",
+        navigator: "readonly",
+        requestAnimationFrame: "readonly",
+        setTimeout: "readonly",
+        window: "readonly",
+      },
     },
     rules: {
       "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
