@@ -53,6 +53,3 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-
-      - name: Check Prettier
-        run: npm run format:check
