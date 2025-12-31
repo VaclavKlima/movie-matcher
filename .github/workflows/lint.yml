@@ -39,10 +39,31 @@ jobs:
           npm install
 
       - name: Run Pint
-        run: vendor/bin/pint --test
+        run: vendor/bin/pint
 
       - name: Run Prettier
-        run: npm run format:check
+        run: npm run format
+
+      - name: Commit formatting changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: apply code style"
+          commit_options: "--no-verify"
+          file_pattern: |
+            app/**/*.php
+            bootstrap/**/*.php
+            config/**/*.php
+            database/**/*.php
+            resources/**/*
+            routes/**/*.php
+            tests/**/*.php
+            composer.json
+            composer.lock
+            package.json
+            package-lock.json
+            vite.config.js
+            eslint.config.js
+            pint.json
 
       # - name: Commit Changes
       #   uses: stefanzweifel/git-auto-commit-action@v5
