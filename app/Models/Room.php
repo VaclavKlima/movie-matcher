@@ -4,24 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Room extends Model
 {
-    use HasFactory;
 
     protected $fillable = [
         'code',
         'started_at',
         'current_movie_id',
         'matched_movie_id',
+        'continue_hunting_requested_at',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
+        'continue_hunting_requested_at' => 'datetime',
     ];
 
-    public function participants()
+    public function participants(): HasMany
     {
         return $this->hasMany(RoomParticipant::class);
     }

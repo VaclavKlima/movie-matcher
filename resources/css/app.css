@@ -64,3 +64,203 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Cinema-themed animations */
+@keyframes film-reel-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spotlight-sweep {
+    0% {
+        transform: translateX(-100%) rotate(-10deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: translateX(100%) rotate(-10deg);
+        opacity: 0;
+    }
+}
+
+@keyframes marquee-lights {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes curtain-open {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes float-gentle {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes card-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes card-flip {
+    0% {
+        transform: rotateY(0deg);
+    }
+    50% {
+        transform: rotateY(90deg);
+    }
+    100% {
+        transform: rotateY(0deg);
+    }
+}
+
+@keyframes confetti-burst {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.5) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+@keyframes ticket-perforation {
+    0%, 100% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 10px 0;
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(251, 191, 36, 0.4);
+    }
+}
+
+@keyframes stagger-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-film-reel {
+    animation: film-reel-spin 20s linear infinite;
+}
+
+.animate-spotlight {
+    animation: spotlight-sweep 8s ease-in-out infinite;
+}
+
+.animate-marquee-lights {
+    animation: marquee-lights 1.5s ease-in-out infinite;
+}
+
+.animate-float {
+    animation: float-gentle 3s ease-in-out infinite;
+}
+
+.animate-card-slide {
+    animation: card-slide-in 0.5s ease-out forwards;
+}
+
+.animate-confetti {
+    animation: confetti-burst 0.8s ease-out forwards;
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Film strip border decoration */
+.film-strip-border {
+    position: relative;
+    border-left: 8px solid #1f2937;
+    border-right: 8px solid #1f2937;
+}
+
+.film-strip-border::before,
+.film-strip-border::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    right: -8px;
+    height: 8px;
+    background: linear-gradient(90deg,
+        #1f2937 0%, #1f2937 20%,
+        transparent 20%, transparent 30%,
+        #1f2937 30%, #1f2937 40%,
+        transparent 40%, transparent 50%,
+        #1f2937 50%, #1f2937 60%,
+        transparent 60%, transparent 70%,
+        #1f2937 70%, #1f2937 80%,
+        transparent 80%, transparent 90%,
+        #1f2937 90%, #1f2937 100%
+    );
+    background-size: 40px 8px;
+}
+
+.film-strip-border::before {
+    top: -8px;
+}
+
+.film-strip-border::after {
+    bottom: -8px;
+}
+
+/* Ticket stub perforation */
+.ticket-stub {
+    position: relative;
+    background: linear-gradient(90deg,
+        transparent 0%, transparent 2%,
+        currentColor 2%, currentColor 4%,
+        transparent 4%, transparent 100%
+    );
+    background-size: 8px 100%;
+    background-repeat: repeat-x;
+    padding-left: 12px;
+}
+
+/* Cinema seat styling */
+.cinema-seat {
+    clip-path: polygon(
+        10% 0%, 90% 0%, 100% 10%, 100% 70%,
+        95% 85%, 90% 95%, 85% 100%, 15% 100%,
+        10% 95%, 5% 85%, 0% 70%, 0% 10%
+    );
+}

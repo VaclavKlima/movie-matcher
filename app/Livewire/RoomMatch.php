@@ -25,6 +25,7 @@ class RoomMatch extends Component
     public ?int $matchedMovieId = null;
     public bool $debugSuggest = false;
     public array $debugSuggestMeta = [];
+    public ?string $lastContinueRequestedAt = null;
 
     public function mount(?string $code = null): void
     {
@@ -48,6 +49,7 @@ class RoomMatch extends Component
         $this->roomCode = $room->code;
         $this->isHost = (bool) $participant->is_host;
         $this->debugSuggest = request()->boolean('debug');
+        $this->lastContinueRequestedAt = $room->continue_hunting_requested_at?->toISOString();
         $this->loadRandomMovie();
 
         if ($room->matched_movie_id) {
@@ -94,18 +96,30 @@ class RoomMatch extends Component
     {
         $this->showMatchModal = false;
         $this->matchedMovieId = null;
-        Room::where('id', $this->roomId)->update(['matched_movie_id' => null]);
+
+        $now = Carbon::now();
+        Room::where('id', $this->roomId)->update([
+            'matched_movie_id' => null,
+            'continue_hunting_requested_at' => $now,
+        ]);
     }
 
     public function refreshState(): void
     {
-        $participant = RoomParticipant::where('id', $this->participantId)->first();
+        // Optimize: Only fetch the columns we need
+        $participant = RoomParticipant::select('id', 'kicked_at')
+            ->where('id', $this->participantId)
+            ->first();
+
         if (! $participant || $participant->kicked_at !== null) {
             $this->redirectRoute('home');
             return;
         }
 
-        $room = Room::find($this->roomId);
+        // Optimize: Only fetch needed columns
+        $room = Room::select('id', 'started_at', 'matched_movie_id', 'continue_hunting_requested_at')
+            ->find($this->roomId);
+
         if (! $room) {
             $this->redirectRoute('home');
             return;
@@ -116,13 +130,26 @@ class RoomMatch extends Component
             return;
         }
 
-        if ($room->matched_movie_id) {
+        // Check for continue hunting request
+        $continueRequestedAt = $room->continue_hunting_requested_at?->toISOString();
+        if ($continueRequestedAt && $continueRequestedAt !== $this->lastContinueRequestedAt) {
+            $this->lastContinueRequestedAt = $continueRequestedAt;
+
+            $this->dispatch('toast',
+                message: '🎬 Continuing the hunt! Time to find another gem...',
+                type: 'info'
+            );
+        }
+
+        // Check for match
+        if ($room->matched_movie_id && $room->matched_movie_id !== $this->matchedMovieId) {
             $this->matchedMovieId = $room->matched_movie_id;
             $this->showMatchModal = true;
             return;
         }
 
-        if ($this->showMatchModal) {
+        // Close modal if match was cleared
+        if ($this->showMatchModal && !$room->matched_movie_id) {
             $this->showMatchModal = false;
             $this->matchedMovieId = null;
         }
