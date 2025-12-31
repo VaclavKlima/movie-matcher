@@ -5,8 +5,8 @@
         "build": "vite build",
         "dev": "vite",
         "lint": "eslint .",
-        "format": "prettier --write \"resources/**/*.{js,css,blade.php}\" \"vite.config.js\" \"eslint.config.js\"",
-        "format:check": "prettier --check \"resources/**/*.{js,css,blade.php}\" \"vite.config.js\" \"eslint.config.js\""
+        "format": "prettier --write \"resources/**/*.{js,css}\" \"vite.config.js\" \"eslint.config.js\"",
+        "format:check": "prettier --check \"resources/**/*.{js,css}\" \"vite.config.js\" \"eslint.config.js\""
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.18",

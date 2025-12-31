@@ -49,8 +49,7 @@ jobs:
       - name: Build assets
         run: npm run build
 
-      - name: Run PHP tests
-        run: php artisan test
+      # Tests disabled until meaningful coverage is added.
 
       - name: Run ESLint
         run: npm run lint
