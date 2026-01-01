@@ -2,6 +2,16 @@
     $participantCount = $participants->count();
     $matchCount = $matchedMovies->count();
     $hostParticipant = $participants->firstWhere('is_host', true);
+    $avatars = config('room.avatars', []);
+    if (! is_array($avatars) || $avatars === []) {
+        $avatars = [
+            ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
+        ];
+    }
+    $avatarMap = [];
+    foreach ($avatars as $avatarOption) {
+        $avatarMap[$avatarOption['id']] = $avatarOption;
+    }
 @endphp
 
 <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
@@ -163,9 +173,14 @@
             <div class="mt-6 grid gap-4">
                 @if ($currentParticipant && $currentParticipantStats)
                     <div class="rounded-2xl border-2 border-amber-400/50 bg-gradient-to-br from-slate-800/90 to-slate-900/80 p-4 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:border-amber-300/70 hover:shadow-amber-500/30">
+                        @php
+                            $currentAvatarData = $currentParticipant
+                                ? ($avatarMap[$currentParticipant->avatar] ?? $avatars[0])
+                                : $avatars[0];
+                        @endphp
                         <div class="flex items-center gap-3">
-                            <span class="cinema-seat flex h-12 w-12 items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 text-xl font-black text-slate-900 shadow-lg">
-                                {{ strtoupper(substr($currentParticipant->name ?? 'Y', 0, 1)) }}
+                            <span class="cinema-seat flex h-12 w-12 shrink-0 items-center justify-center text-xl font-black shadow-lg {{ $currentAvatarData['bg'] }} {{ $currentAvatarData['text'] }} {{ $currentAvatarData['ring'] }} ring-2 ring-inset ring-offset-2 ring-offset-slate-900">
+                                <x-movie-avatar-icon :id="$currentAvatarData['id']" class="h-6 w-6" />
                             </span>
                             <div>
                                 <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Your Seat</div>
@@ -198,10 +213,13 @@
             @else
                 <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($nonHostStats as $stat)
+                        @php
+                            $avatarData = $avatarMap[$stat['participant']->avatar] ?? $avatars[0];
+                        @endphp
                         <div class="rounded-2xl border border-purple-400/30 bg-gradient-to-r from-slate-800/90 to-slate-700/80 p-4 shadow-lg transition-all duration-300 hover:border-purple-400/50 hover:shadow-purple-500/20">
                             <div class="flex items-center gap-3">
-                                <span class="cinema-seat flex h-12 w-12 items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700 text-xl font-black text-white shadow-lg">
-                                    {{ strtoupper(substr($stat['participant']->name ?? 'G', 0, 1)) }}
+                                <span class="cinema-seat flex h-12 w-12 shrink-0 items-center justify-center text-xl font-black shadow-lg {{ $avatarData['bg'] }} {{ $avatarData['text'] }} {{ $avatarData['ring'] }} ring-2 ring-inset ring-offset-2 ring-offset-slate-900">
+                                    <x-movie-avatar-icon :id="$avatarData['id']" class="h-6 w-6" />
                                 </span>
                                 <div>
                                     <div class="font-bold text-amber-50">{{ $stat['participant']->name ?? 'Guest' }}</div>

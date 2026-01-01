@@ -271,12 +271,23 @@ class RoomMatch extends Component
             ->orderByDesc('is_host')
             ->orderBy('created_at')
             ->get();
+        $voteStats = MovieVote::where('room_id', $this->roomId)
+            ->get(['room_participant_id', 'decision']);
+        $voteStatsByParticipant = $voteStats
+            ->groupBy('room_participant_id')
+            ->map(function ($votes) {
+                return [
+                    'up' => $votes->where('decision', 'up')->count(),
+                    'down' => $votes->where('decision', 'down')->count(),
+                ];
+            });
 
         return view('livewire.room-match', [
             'participants' => $participants,
             'movie' => $currentMovie,
             'matchedMovie' => $matchedMovie,
             'matchedMovies' => $matchedMovies,
+            'voteStatsByParticipant' => $voteStatsByParticipant,
         ])->layout('components.layouts.marketing', ['title' => 'Matching in '.$this->roomCode]);
     }
 

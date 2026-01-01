@@ -1,5 +1,15 @@
 @php
     $participantCount = $participants->count();
+    $avatars = config('room.avatars', []);
+    if (! is_array($avatars) || $avatars === []) {
+        $avatars = [
+            ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
+        ];
+    }
+    $avatarMap = [];
+    foreach ($avatars as $avatarOption) {
+        $avatarMap[$avatarOption['id']] = $avatarOption;
+    }
 @endphp
 
 <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900" wire:poll.2s.visible="refreshState">
@@ -239,10 +249,13 @@
                     @foreach ($participants as $index => $participant)
                         <div class="animate-float group flex items-center justify-between rounded-xl border border-slate-600/50 bg-gradient-to-r from-slate-800/90 to-slate-700/80 px-4 py-3.5 shadow-lg transition-all duration-300 hover:border-purple-400/50 hover:shadow-purple-500/20"
                              style="animation-delay: {{ $index * 0.1 }}s;">
+                            @php
+                                $avatarData = $avatarMap[$participant->avatar] ?? $avatars[0];
+                            @endphp
                             <div class="flex items-center gap-3">
                                 {{-- Cinema Seat Avatar --}}
-                                <span class="cinema-seat flex h-12 w-12 items-center justify-center bg-gradient-to-br from-purple-500 to-purple-700 text-xl font-black text-white shadow-lg">
-                                    {{ strtoupper(substr($participant->name ?? 'G', 0, 1)) }}
+                                <span class="cinema-seat flex h-12 w-12 shrink-0 items-center justify-center text-xl font-black shadow-lg {{ $avatarData['bg'] }} {{ $avatarData['text'] }} {{ $avatarData['ring'] }} ring-2 ring-inset ring-offset-2 ring-offset-slate-900">
+                                    <x-movie-avatar-icon :id="$avatarData['id']" class="h-6 w-6" />
                                 </span>
                                 <div>
                                     <div class="font-bold text-amber-50">{{ $participant->name ?? 'Guest' }}</div>
@@ -251,9 +264,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <span class="flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-500/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-emerald-300">
-                                <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400"></span>
-                                Ready
+                            @php
+                                $voteStats = $voteStatsByParticipant->get($participant->id, ['up' => 0, 'down' => 0]);
+                            @endphp
+                            <span class="flex items-center gap-2 rounded-full border border-amber-400/40 bg-slate-900/60 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-amber-200 whitespace-nowrap tabular-nums">
+                                <span class="text-emerald-300">👍 {{ $voteStats['up'] }}</span>
+                                <span class="text-amber-400/60">•</span>
+                                <span class="text-rose-300">👎 {{ $voteStats['down'] }}</span>
                             </span>
                         </div>
                     @endforeach
