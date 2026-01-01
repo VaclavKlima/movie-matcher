@@ -13,11 +13,14 @@
         "ext-dom": "*",
         "ext-simplexml": "*",
         "ext-xmlreader": "*",
+        "http-interop/http-factory-guzzle": "^1.2",
         "laravel/framework": "^12.0",
         "laravel/pulse": "^1.4",
+        "laravel/scout": "^10.23",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
-        "livewire/volt": "^1.7.0"
+        "livewire/volt": "^1.7.0",
+        "meilisearch/meilisearch-php": "^1.16"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

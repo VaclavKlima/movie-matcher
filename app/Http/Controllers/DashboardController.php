@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use Meilisearch\Client;
+use Throwable;
 
 class DashboardController extends Controller
 {
@@ -68,8 +70,41 @@ class DashboardController extends Controller
             ];
         });
 
+        $movieIndexName = (new Movie())->searchableAs();
+        $searchPrefix = (string) config('scout.prefix', '');
+        $fullIndexName = $searchPrefix.$movieIndexName;
+
+        $searchStats = [
+            'driver' => config('scout.driver'),
+            'prefix' => $searchPrefix,
+            'movie_index' => $movieIndexName,
+            'full_movie_index' => $fullIndexName,
+            'host' => config('scout.meilisearch.host'),
+            'key_set' => (bool) config('scout.meilisearch.key'),
+            'queue_connection' => config('scout.queue.connection'),
+            'queue_name' => config('scout.queue.queue'),
+            'after_commit' => (bool) config('scout.after_commit'),
+            'documents_total' => null,
+            'index_size_bytes' => null,
+            'unreachable' => false,
+        ];
+
+        if ($searchStats['driver'] === 'meilisearch' && $searchStats['host']) {
+            try {
+                $client = new Client($searchStats['host'], config('scout.meilisearch.key'));
+                $stats = $client->index($fullIndexName)->stats();
+                $searchStats['documents_total'] = $stats['numberOfDocuments'] ?? null;
+                $searchStats['index_size_bytes'] = $stats['databaseSize'] ?? null;
+            } catch (Throwable) {
+                $searchStats['documents_total'] = null;
+                $searchStats['index_size_bytes'] = null;
+                $searchStats['unreachable'] = true;
+            }
+        }
+
         return view('dashboard', [
             'movieStats' => $movieStats,
+            'searchStats' => $searchStats,
         ]);
     }
 }
