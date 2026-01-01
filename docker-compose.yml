@@ -75,7 +75,7 @@ services:
       MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7700/health"]
       interval: 5s
       timeout: 3s
       retries: 5
