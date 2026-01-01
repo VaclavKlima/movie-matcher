@@ -9,7 +9,7 @@ class OptimizeImagesCommand extends Command
 {
     protected $signature = 'movies:optimize-images';
 
-    protected $description = 'Creates jobs to optimize images in the database';
+    protected $description = 'Optimize movie poster images to WebP format';
 
     public function handle(): void
     {
