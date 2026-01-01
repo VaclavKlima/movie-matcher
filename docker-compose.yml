@@ -219,4 +219,3 @@ volumes:
   storage-data:
   redis-data:
   meilisearch-data:
-  meilisearch-data:
