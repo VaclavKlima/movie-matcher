@@ -83,6 +83,48 @@
                     </div>
                 </div>
 
+                @if ($hasPlayerCookie)
+                    {{-- Finished Rooms History --}}
+                    <div class="rounded-3xl border-2 border-amber-400/30 bg-gradient-to-br from-slate-800/90 to-slate-900/90 p-6 shadow-2xl shadow-amber-500/10 backdrop-blur-xl">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl font-black text-amber-100 drop-shadow-lg">🎬 Recent Screenings</h3>
+                                <p class="mt-2 text-sm text-purple-200/80">
+                                    The crowd has spoken. Revisit the showtime picks from your last screenings.
+                                </p>
+                            </div>
+                            <div class="rounded-full border-2 border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-600/20 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-200 shadow-lg shadow-amber-500/20">
+                                History
+                            </div>
+                        </div>
+
+                        @if ($finishedRooms->isEmpty())
+                            <div class="mt-4 rounded-xl border border-purple-400/30 bg-purple-500/10 p-4 text-sm text-purple-200/80">
+                                🍿 No screenings in your history yet.
+                            </div>
+                        @else
+                            <div class="mt-4 grid gap-3">
+                                @foreach ($finishedRooms as $room)
+                                    <a
+                                        href="{{ route('rooms.stats', ['code' => $room->code]) }}"
+                                        class="group flex items-center justify-between gap-4 rounded-2xl border border-slate-700/70 bg-gradient-to-r from-slate-800/80 to-slate-900/80 p-4 transition-all duration-300 hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/20"
+                                    >
+                                        <div>
+                                            <p class="text-sm font-bold text-amber-100">🎬 Screening {{ $room->code }}</p>
+                                            <p class="mt-1 text-xs text-purple-200/70">
+                                                Ended {{ $room->ended_at?->diffForHumans() }}
+                                            </p>
+                                        </div>
+                                        <span class="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-200 transition-all duration-300 group-hover:bg-amber-500/20">
+                                            🎯 View Stats
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
                 {{-- How It Works Card --}}
                 <div class="rounded-3xl border-2 border-purple-500/30 bg-gradient-to-br from-slate-800/70 to-slate-900/70 p-6 backdrop-blur-xl">
                     <h3 class="text-xl font-black text-amber-100 drop-shadow-lg">🎞️ How The Magic Works</h3>

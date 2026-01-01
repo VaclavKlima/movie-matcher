@@ -7,7 +7,7 @@ use App\Models\MovieVote;
 use App\Models\Room;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
-use Illuminate\Support\Facades\Session;
+use App\Support\PlayerCookie;
 use Livewire\Component;
 
 class RoomStats extends Component
@@ -32,7 +32,8 @@ class RoomStats extends Component
             ->orderBy('created_at')
             ->get();
 
-        $currentParticipant = $participants->firstWhere('session_id', Session::getId());
+        $playerCookieId = PlayerCookie::getOrCreate();
+        $currentParticipant = $participants->firstWhere('player_cookie_id', $playerCookieId);
 
         $selectedMovie = $room->matched_movie_id
             ? Movie::with(['genres', 'actors'])->find($room->matched_movie_id)

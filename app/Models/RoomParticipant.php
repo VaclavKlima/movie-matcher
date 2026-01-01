@@ -12,6 +12,7 @@ class RoomParticipant extends Model
     protected $fillable = [
         'room_id',
         'session_id',
+        'player_cookie_id',
         'name',
         'avatar',
         'is_host',

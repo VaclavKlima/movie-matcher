@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'player_cookie_name' => 'moviematcher_player',
+    'player_cookie_minutes' => 60 * 24 * 365,
     'inactive_after_minutes' => 15,
     'funny_names' => [
         'The Fast and the Curious',

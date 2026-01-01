@@ -8,6 +8,7 @@ use App\Models\MovieVote;
 use App\Models\Room;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
+use App\Support\PlayerCookie;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
@@ -42,15 +43,27 @@ class RoomMatch extends Component
     public function mount(?string $code = null): void
     {
         $room = Room::where('code', $code)->firstOrFail();
+        $playerCookieId = PlayerCookie::getOrCreate();
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
             return;
         }
         $participant = RoomParticipant::where('room_id', $room->id)
-            ->where('session_id', Session::getId())
+            ->where('player_cookie_id', $playerCookieId)
             ->whereNull('kicked_at')
             ->first();
+
+        if (! $participant) {
+            $participant = RoomParticipant::where('room_id', $room->id)
+                ->where('session_id', Session::getId())
+                ->whereNull('kicked_at')
+                ->first();
+
+            if ($participant && ! $participant->player_cookie_id) {
+                $participant->update(['player_cookie_id' => $playerCookieId]);
+            }
+        }
 
         if (! $room->started_at) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Room;
 use App\Models\RoomParticipant;
+use App\Support\PlayerCookie;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -24,14 +25,25 @@ class RoomJoin extends Component
     public function mount(?string $code = null): void
     {
         $room = Room::where('code', $code)->firstOrFail();
+        $playerCookieId = PlayerCookie::getOrCreate();
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
             return;
         }
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
-            ->where('session_id', Session::getId())
+            ->where('player_cookie_id', $playerCookieId)
             ->first();
+
+        if (! $existingParticipant) {
+            $existingParticipant = RoomParticipant::where('room_id', $room->id)
+                ->where('session_id', Session::getId())
+                ->first();
+
+            if ($existingParticipant && ! $existingParticipant->player_cookie_id) {
+                $existingParticipant->update(['player_cookie_id' => $playerCookieId]);
+            }
+        }
 
         if ($existingParticipant) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
@@ -61,14 +73,25 @@ class RoomJoin extends Component
         ]);
 
         $room = Room::where('code', $this->roomCode)->firstOrFail();
+        $playerCookieId = PlayerCookie::getOrCreate();
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
             return;
         }
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
-            ->where('session_id', Session::getId())
+            ->where('player_cookie_id', $playerCookieId)
             ->first();
+
+        if (! $existingParticipant) {
+            $existingParticipant = RoomParticipant::where('room_id', $room->id)
+                ->where('session_id', Session::getId())
+                ->first();
+
+            if ($existingParticipant && ! $existingParticipant->player_cookie_id) {
+                $existingParticipant->update(['player_cookie_id' => $playerCookieId]);
+            }
+        }
 
         if ($existingParticipant) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
@@ -85,6 +108,7 @@ class RoomJoin extends Component
         RoomParticipant::create([
             'room_id' => $room->id,
             'session_id' => Session::getId(),
+            'player_cookie_id' => $playerCookieId,
             'name' => $this->name,
             'avatar' => $this->avatar,
             'is_host' => $isHost,

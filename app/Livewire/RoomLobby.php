@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Room;
 use App\Models\RoomParticipant;
+use App\Support\PlayerCookie;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,7 @@ class RoomLobby extends Component
         }
 
         $room = Room::where('code', $code)->firstOrFail();
+        $playerCookieId = PlayerCookie::getOrCreate();
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
@@ -63,8 +65,18 @@ class RoomLobby extends Component
         }
         $isHost = Session::get('host_room_code') === $room->code;
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
-            ->where('session_id', Session::getId())
+            ->where('player_cookie_id', $playerCookieId)
             ->first();
+
+        if (! $existingParticipant) {
+            $existingParticipant = RoomParticipant::where('room_id', $room->id)
+                ->where('session_id', Session::getId())
+                ->first();
+
+            if ($existingParticipant && ! $existingParticipant->player_cookie_id) {
+                $existingParticipant->update(['player_cookie_id' => $playerCookieId]);
+            }
+        }
 
         if (! $existingParticipant) {
             if ($room->started_at) {
