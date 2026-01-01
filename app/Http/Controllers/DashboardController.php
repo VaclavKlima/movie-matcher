@@ -70,7 +70,7 @@ class DashboardController extends Controller
             ];
         });
 
-        $movieIndexName = (new Movie())->searchableAs();
+        $movieIndexName = (new Movie)->searchableAs();
         $searchPrefix = (string) config('scout.prefix', '');
         $fullIndexName = $searchPrefix.$movieIndexName;
 
