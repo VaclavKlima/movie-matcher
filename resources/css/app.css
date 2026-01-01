@@ -203,7 +203,7 @@ select:focus[data-flux-control] {
 }
 
 .animate-card-slide {
-    animation: card-slide-in 0.5s ease-out forwards;
+    animation: card-slide-in 0.8s ease-out forwards;
 }
 
 .animate-confetti {
