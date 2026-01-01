@@ -5,3 +5,4 @@
 - Add automatic flagging that a room ended when no one is using it (cron check)
 - First movie match should appear after every player likes/dislikes at least 5 movies
 - In the room matching instead of showing "ready" tag at player, show like/dislike ratio
+- Add caching for app\Livewire\RoomStats.php
