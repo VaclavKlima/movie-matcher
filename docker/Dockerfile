@@ -19,18 +19,24 @@ RUN apt-get update \
         libsqlite3-dev \
         libxml2-dev \
         libzip-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+        libwebp-dev \
         default-mysql-client \
         nodejs \
         npm \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install -j$(nproc) \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) \
         intl \
         mbstring \
         pdo \
         pdo_mysql \
         pdo_sqlite \
-        zip
+        zip \
+        gd
 
 # Install Redis extension
 RUN pecl install redis \
