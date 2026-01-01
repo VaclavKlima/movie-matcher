@@ -19,17 +19,18 @@ class OptimizeImagesCommand extends Command
             ->lazyById()
             ->each(function (Movie $movie) {
                 $originalSize = $this->getImageSize($movie->poster_image);
-                $this->info('Original image size: ' . $originalSize . ' MB');
+                $this->info('Original image size: '.$originalSize.' MB');
 
                 $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $movie->poster_image));
                 $image = imagecreatefromstring($imageData);
 
                 if ($image === false) {
-                    $this->error('Failed to decode image for movie: ' . $movie->name);
+                    $this->error('Failed to decode image for movie: '.$movie->name);
+
                     return;
                 }
 
-                if (!imageistruecolor($image)) {
+                if (! imageistruecolor($image)) {
                     $width = imagesx($image);
                     $height = imagesy($image);
                     $trueColorImage = imagecreatetruecolor($width, $height);
@@ -43,18 +44,18 @@ class OptimizeImagesCommand extends Command
                 $webpData = ob_get_clean();
                 imagedestroy($image);
 
-                $webpBase64 = 'data:image/webp;base64,' . base64_encode($webpData);
+                $webpBase64 = 'data:image/webp;base64,'.base64_encode($webpData);
 
                 $newSize = $this->getImageSize($webpBase64);
                 $difference = (($originalSize - $newSize) / $originalSize) * 100;
 
-                $this->info('New WebP size: ' . $newSize . ' MB');
-                $this->info('Size difference: ' . round($difference, 2) . '%');
+                $this->info('New WebP size: '.$newSize.' MB');
+                $this->info('Size difference: '.round($difference, 2).'%');
 
                 $movie->poster_image = $webpBase64;
                 $movie->save();
 
-                $this->info('Saved optimized image for movie: ' . $movie->name);
+                $this->info('Saved optimized image for movie: '.$movie->name);
                 $this->newLine();
             });
     }
