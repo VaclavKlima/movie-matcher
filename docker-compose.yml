@@ -33,7 +33,7 @@ services:
       redis:
         condition: service_healthy
       meilisearch:
-        condition: service_healthy
+        condition: service_started
 
   mysql:
     image: mysql:8.0
@@ -74,11 +74,6 @@ services:
       MEILI_ENV: production
       MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-}
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7700/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
   queue-worker:
     build:
@@ -110,7 +105,7 @@ services:
       redis:
         condition: service_healthy
       meilisearch:
-        condition: service_healthy
+        condition: service_started
 
   queue-worker-2:
     build:
@@ -142,7 +137,7 @@ services:
       redis:
         condition: service_healthy
       meilisearch:
-        condition: service_healthy
+        condition: service_started
 
   scout-worker:
     build:
@@ -174,7 +169,7 @@ services:
       redis:
         condition: service_healthy
       meilisearch:
-        condition: service_healthy
+        condition: service_started
 
   scheduler:
     build:
@@ -206,7 +201,7 @@ services:
       redis:
         condition: service_healthy
       meilisearch:
-        condition: service_healthy
+        condition: service_started
 
   cloudflared:
     image: cloudflare/cloudflared:latest
