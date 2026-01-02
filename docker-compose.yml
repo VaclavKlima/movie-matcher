@@ -219,6 +219,7 @@ services:
     volumes:
       - storage-data:/var/www/html/storage
     environment:
+      APP_URL: ${APP_URL:-http://localhost:8000}
       APP_ENV: production
       APP_DEBUG: "false"
       DB_CONNECTION: mysql
