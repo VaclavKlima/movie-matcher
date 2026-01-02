@@ -1,7 +1,7 @@
 @php
-    $participantCount = $participants->count();
-    $matchCount = $matchedMovies->count();
-    $hostParticipant = $participants->firstWhere('is_host', true);
+    $participantCount = $stats->participants->count();
+    $matchCount = $stats->matchedMovies->count();
+    $hostParticipant = $stats->participants->firstWhere('is_host', true);
     $avatars = config('room.avatars', []);
     if (! is_array($avatars) || $avatars === []) {
         $avatars = [
@@ -47,7 +47,7 @@
                     <div class="text-xs font-bold uppercase tracking-[0.25em] text-amber-300/80">Room Code</div>
                     <div class="mt-3 flex items-center gap-2 rounded-xl border border-amber-400/20 bg-slate-950/50 px-5 py-3">
                         <span class="text-2xl">🎫</span>
-                        <span class="text-2xl font-black tracking-[0.35em] text-amber-200">{{ $room->code }}</span>
+                        <span class="text-2xl font-black tracking-[0.35em] text-amber-200">{{ $stats->room->code }}</span>
                     </div>
                 </div>
 
@@ -68,25 +68,25 @@
                     <h2 class="text-2xl font-black text-amber-100 drop-shadow-lg">🎯 Final Feature</h2>
                     <p class="mt-2 text-sm text-purple-200/80">The pick that closed the curtains</p>
                 </div>
-                @if ($selectedMovie && $finalMatchNumber)
+                @if ($stats->selectedMovie && $stats->finalMatchNumber)
                     <div class="animate-float ticket-stub inline-flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-200">
-                        🎟️ Match #{{ $finalMatchNumber }}
+                        🎟️ Match #{{ $stats->finalMatchNumber }}
                     </div>
                 @endif
             </div>
 
-            @if ($selectedMovie)
+            @if ($stats->selectedMovie)
                 <div class="mt-6 grid gap-6 lg:grid-cols-[0.4fr_0.6fr]">
                     <div class="film-strip-border relative flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-700/50 bg-gradient-to-br from-slate-950 to-slate-900 p-4 shadow-xl transition-transform duration-300 hover:scale-[1.01]">
-                        @if ($selectedMovie->poster_image)
+                        @if ($stats->selectedMovie->poster_image)
                             @php
-                                $selectedPosterSrc = str_starts_with($selectedMovie->poster_image, 'data:')
-                                    ? $selectedMovie->poster_image
-                                    : 'data:image/jpeg;base64,'.$selectedMovie->poster_image;
+                                $selectedPosterSrc = str_starts_with($stats->selectedMovie->poster_image, 'data:')
+                                    ? $stats->selectedMovie->poster_image
+                                    : 'data:image/jpeg;base64,'.$stats->selectedMovie->poster_image;
                             @endphp
                             <img
                                 src="{{ $selectedPosterSrc }}"
-                                alt="{{ $selectedMovie->name }}"
+                                alt="{{ $stats->selectedMovie->name }}"
                                 class="h-full w-full object-contain"
                             />
                         @else
@@ -100,32 +100,32 @@
                         <div class="flex items-center gap-3 rounded-lg border border-amber-400/20 bg-slate-950/50 px-4 py-2">
                             <span class="text-lg">🎬</span>
                             <div class="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-300/90">
-                                <span>{{ $selectedMovie->year }}</span>
+                                <span>{{ $stats->selectedMovie->year }}</span>
                                 <span class="text-amber-400/50">•</span>
-                                <span>{{ $selectedMovie->duration }}</span>
+                                <span>{{ $stats->selectedMovie->duration }}</span>
                                 <span class="text-amber-400/50">•</span>
-                                <span>{{ $selectedMovie->country }}</span>
+                                <span>{{ $stats->selectedMovie->country }}</span>
                             </div>
                         </div>
-                        <h3 class="text-2xl sm:text-3xl font-bold text-amber-50">{{ $selectedMovie->name }}</h3>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-amber-50">{{ $stats->selectedMovie->name }}</h3>
                         <p class="text-sm sm:text-base leading-relaxed text-purple-100/80">
-                            {{ $selectedMovie->description ?: 'The final reel is a mystery, but the crowd loved it.' }}
+                            {{ $stats->selectedMovie->description ?: 'The final reel is a mystery, but the crowd loved it.' }}
                         </p>
                         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             <div class="rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-3 text-center transition-all duration-300 hover:border-amber-300/70 hover:bg-amber-500/20">
                                 <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Final Match #</div>
-                                <div class="mt-2 text-2xl font-black text-amber-100">{{ $finalMatchNumber ?? 'TBD' }}</div>
+                                <div class="mt-2 text-2xl font-black text-amber-100">{{ $stats->finalMatchNumber ?? 'TBD' }}</div>
                             </div>
                             <div class="rounded-xl border border-emerald-400/50 bg-emerald-500/10 px-4 py-3 text-center transition-all duration-300 hover:border-emerald-300/70 hover:bg-emerald-500/20">
                                 <div class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">Runtime</div>
-                                <div class="mt-2 text-2xl font-black text-emerald-100">{{ $roomDurationLabel ?? 'TBD' }}</div>
+                                <div class="mt-2 text-2xl font-black text-emerald-100">{{ $stats->roomDurationLabel ?? 'TBD' }}</div>
                             </div>
                             <div class="rounded-xl border border-amber-400/50 bg-amber-500/10 px-4 py-3 text-center transition-all duration-300 hover:border-amber-300/70 hover:bg-amber-500/20">
                                 <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Audience Match</div>
                                 <div class="mt-2 text-2xl font-black text-amber-100">
-                                    {{ $selectedAudienceYes }} / {{ $nonHostCount }}
+                                    {{ $stats->selectedAudienceYes }} / {{ $stats->nonHostCount }}
                                 </div>
-                                <div class="mt-1 text-xs font-semibold text-amber-200/80">{{ $selectedAudienceYesPercent }}% of audience</div>
+                                <div class="mt-1 text-xs font-semibold text-amber-200/80">{{ $stats->selectedAudienceYesPercent }}% of audience</div>
                             </div>
                         </div>
                     </div>
@@ -154,15 +154,15 @@
             <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 transition-all duration-300 hover:border-amber-300/70 hover:bg-amber-500/20">
                     <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Total Votes</div>
-                    <div class="mt-2 text-2xl font-black text-amber-100">{{ $totalVotes }}</div>
+                    <div class="mt-2 text-2xl font-black text-amber-100">{{ $stats->totalVotes }}</div>
                 </div>
                 <div class="rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-4 transition-all duration-300 hover:border-emerald-300/70 hover:bg-emerald-500/20">
                     <div class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">Yes Votes</div>
-                    <div class="mt-2 text-2xl font-black text-emerald-100">{{ $totalYesVotes }}</div>
+                    <div class="mt-2 text-2xl font-black text-emerald-100">{{ $stats->totalYesVotes }}</div>
                 </div>
                 <div class="rounded-2xl border border-purple-400/40 bg-purple-500/10 p-4 transition-all duration-300 hover:border-purple-300/70 hover:bg-purple-500/20">
                     <div class="text-xs font-bold uppercase tracking-[0.2em] text-purple-200">Approval Rate</div>
-                    <div class="mt-2 text-2xl font-black text-purple-100">{{ $overallApproval }}%</div>
+                    <div class="mt-2 text-2xl font-black text-purple-100">{{ $stats->overallApproval }}%</div>
                 </div>
                 <div class="rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 transition-all duration-300 hover:border-amber-300/70 hover:bg-amber-500/20">
                     <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">Matches</div>
@@ -171,11 +171,11 @@
             </div>
 
             <div class="mt-6 grid gap-4">
-                @if ($currentParticipant && $currentParticipantStats)
+                @if ($stats->currentParticipant && $stats->currentParticipantStats)
                     <div class="rounded-2xl border-2 border-amber-400/50 bg-gradient-to-br from-slate-800/90 to-slate-900/80 p-4 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:border-amber-300/70 hover:shadow-amber-500/30">
                         @php
-                            $currentAvatarData = $currentParticipant
-                                ? ($avatarMap[$currentParticipant->avatar] ?? $avatars[0])
+                            $currentAvatarData = $stats->currentParticipant
+                                ? ($avatarMap[$stats->currentParticipant->avatar] ?? $avatars[0])
                                 : $avatars[0];
                         @endphp
                         <div class="flex items-center gap-3">
@@ -184,37 +184,37 @@
                             </span>
                             <div>
                                 <div class="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Your Seat</div>
-                                <div class="text-lg font-semibold text-amber-50">{{ $currentParticipant->name ?? 'You' }}</div>
+                                <div class="text-lg font-semibold text-amber-50">{{ $stats->currentParticipant->name ?? 'You' }}</div>
                             </div>
                         </div>
                         <div class="mt-4 grid grid-cols-3 gap-2 text-center">
                             <div class="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-2 py-2">
                                 <div class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-200">Yes</div>
-                                <div class="mt-1 text-lg font-black text-emerald-100">{{ $currentParticipantStats['yes'] }}</div>
+                                <div class="mt-1 text-lg font-black text-emerald-100">{{ $stats->currentParticipantStats->yes }}</div>
                             </div>
                             <div class="rounded-xl border border-rose-400/40 bg-rose-500/10 px-2 py-2">
                                 <div class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-rose-200">No</div>
-                                <div class="mt-1 text-lg font-black text-rose-100">{{ $currentParticipantStats['no'] }}</div>
+                                <div class="mt-1 text-lg font-black text-rose-100">{{ $stats->currentParticipantStats->no }}</div>
                             </div>
                             <div class="rounded-xl border border-amber-400/40 bg-amber-500/10 px-2 py-2">
                                 <div class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-amber-200">Yes %</div>
-                                <div class="mt-1 text-lg font-black text-amber-100">{{ $currentParticipantStats['approval'] }}%</div>
+                                <div class="mt-1 text-lg font-black text-amber-100">{{ $stats->currentParticipantStats->approval }}%</div>
                             </div>
                         </div>
                     </div>
                 @endif
             </div>
 
-            @if ($nonHostStats->isEmpty())
+            @if ($stats->nonHostStats->isEmpty())
                 <div class="mt-6 flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-600/50 bg-slate-900/40 px-6 py-10 text-center text-purple-200/80">
                     <span class="text-4xl opacity-70">🎬</span>
                     <p class="text-sm">No additional cast stats to show.</p>
                 </div>
             @else
                 <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ($nonHostStats as $stat)
+                    @foreach ($stats->nonHostStats as $stat)
                         @php
-                            $avatarData = $avatarMap[$stat['participant']->avatar] ?? $avatars[0];
+                            $avatarData = $avatarMap[$stat->participant->avatar] ?? $avatars[0];
                         @endphp
                         <div class="rounded-2xl border border-purple-400/30 bg-gradient-to-r from-slate-800/90 to-slate-700/80 p-4 shadow-lg transition-all duration-300 hover:border-purple-400/50 hover:shadow-purple-500/20">
                             <div class="flex items-center gap-3">
@@ -222,24 +222,24 @@
                                     <x-movie-avatar-icon :id="$avatarData['id']" class="h-6 w-6" />
                                 </span>
                                 <div>
-                                    <div class="font-bold text-amber-50">{{ $stat['participant']->name ?? 'Guest' }}</div>
+                                    <div class="font-bold text-amber-50">{{ $stat->participant->name ?? 'Guest' }}</div>
                                     <div class="text-xs text-purple-300/80">
-                                        {{ $stat['participant']->is_host ? 'Director' : 'Viewer' }}
+                                        {{ $stat->participant->is_host ? 'Director' : 'Viewer' }}
                                     </div>
                                 </div>
                             </div>
                             <div class="mt-4 grid grid-cols-3 gap-2 text-center">
                                 <div class="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-2 py-2">
                                     <div class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-200">Yes</div>
-                                    <div class="mt-1 text-lg font-black text-emerald-100">{{ $stat['yes'] }}</div>
+                                    <div class="mt-1 text-lg font-black text-emerald-100">{{ $stat->yes }}</div>
                                 </div>
                                 <div class="rounded-xl border border-rose-400/40 bg-rose-500/10 px-2 py-2">
                                     <div class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-rose-200">No</div>
-                                    <div class="mt-1 text-lg font-black text-rose-100">{{ $stat['no'] }}</div>
+                                    <div class="mt-1 text-lg font-black text-rose-100">{{ $stat->no }}</div>
                                 </div>
                                 <div class="rounded-xl border border-amber-400/40 bg-amber-500/10 px-2 py-2">
                                     <div class="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-amber-200">Yes %</div>
-                                    <div class="mt-1 text-lg font-black text-amber-100">{{ $stat['approval'] }}%</div>
+                                    <div class="mt-1 text-lg font-black text-amber-100">{{ $stat->approval }}%</div>
                                 </div>
                             </div>
                         </div>
@@ -264,10 +264,10 @@
                 <div class="rounded-2xl border border-emerald-400/40 bg-emerald-500/10 p-4 transition-all duration-300 hover:border-emerald-300/70 hover:bg-emerald-500/20">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-black text-emerald-100">⭐ Other Matched Movies</h3>
-                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">{{ $otherMatchedMovies->count() }}</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">{{ $stats->otherMatchedMovies->count() }}</span>
                     </div>
                     <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        @forelse ($otherMatchedMovies as $match)
+                        @forelse ($stats->otherMatchedMovies as $match)
                             @php
                                 $movie = $match->movie;
                                 $posterSrc = $movie && $movie->poster_image
@@ -297,13 +297,13 @@
                 <div class="rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 transition-all duration-300 hover:border-amber-300/70 hover:bg-amber-500/20">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-black text-amber-100">🎯 Almost Matched</h3>
-                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">{{ count($almostMatchedIds) }}</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-amber-200">{{ count($stats->almostMatchedIds) }}</span>
                     </div>
                     <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        @forelse ($almostMatchedIds as $movieId)
+                        @forelse ($stats->almostMatchedIds as $movieId)
                             @php
-                                $movie = $almostMatchedMovies->get($movieId);
-                                $stats = $voteStatsByMovieId->get($movieId);
+                                $movie = $stats->almostMatchedMovies->get($movieId);
+                                $voteStats = $stats->voteStatsByMovieId->get($movieId);
                                 $posterSrc = $movie && $movie->poster_image
                                     ? (str_starts_with($movie->poster_image, 'data:')
                                         ? $movie->poster_image
@@ -320,7 +320,7 @@
                                 </div>
                                 <div class="mt-2 text-xs font-semibold text-amber-100 line-clamp-2">{{ $movie?->name ?? 'Near Miss' }}</div>
                                 <div class="mt-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-amber-200/80">
-                                    {{ $stats['yes'] ?? 0 }} yes / {{ $stats['total'] ?? 0 }} votes
+                                    {{ $voteStats?->yes ?? 0 }} yes / {{ $voteStats?->total ?? 0 }} votes
                                 </div>
                             </div>
                         @empty
@@ -334,13 +334,13 @@
                 <div class="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4 transition-all duration-300 hover:border-rose-300/70 hover:bg-rose-500/20">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-black text-rose-100">💥 Most Disliked</h3>
-                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-rose-200">{{ count($mostDislikedIds) }}</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-rose-200">{{ count($stats->mostDislikedIds) }}</span>
                     </div>
                     <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        @forelse ($mostDislikedIds as $movieId)
+                        @forelse ($stats->mostDislikedIds as $movieId)
                             @php
-                                $movie = $mostDislikedMovies->get($movieId);
-                                $stats = $voteStatsByMovieId->get($movieId);
+                                $movie = $stats->mostDislikedMovies->get($movieId);
+                                $voteStats = $stats->voteStatsByMovieId->get($movieId);
                                 $posterSrc = $movie && $movie->poster_image
                                     ? (str_starts_with($movie->poster_image, 'data:')
                                         ? $movie->poster_image
@@ -357,7 +357,7 @@
                                 </div>
                                 <div class="mt-2 text-xs font-semibold text-rose-100 line-clamp-2">{{ $movie?->name ?? 'Cold Cut' }}</div>
                                 <div class="mt-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-rose-200/80">
-                                    {{ $stats['no'] ?? 0 }} boos / {{ $stats['total'] ?? 0 }} votes
+                                    {{ $voteStats?->no ?? 0 }} boos / {{ $voteStats?->total ?? 0 }} votes
                                 </div>
                             </div>
                         @empty
@@ -382,11 +382,11 @@
                     </div>
                     <div class="flex items-center justify-between rounded-xl border border-slate-600/50 bg-slate-900/50 px-4 py-2">
                         <span>Final Feature</span>
-                        <span class="font-bold text-amber-100">{{ $selectedMovie?->name ?? 'TBD' }}</span>
+                        <span class="font-bold text-amber-100">{{ $stats->selectedMovie?->name ?? 'TBD' }}</span>
                     </div>
                     <div class="flex items-center justify-between rounded-xl border border-slate-600/50 bg-slate-900/50 px-4 py-2">
                         <span>Total Votes</span>
-                        <span class="font-bold text-amber-100">{{ $totalVotes }}</span>
+                        <span class="font-bold text-amber-100">{{ $stats->totalVotes }}</span>
                     </div>
                 </div>
             </div>
@@ -395,7 +395,7 @@
                 <h3 class="text-xl font-black text-amber-100 drop-shadow-lg">🎟️ Top Genres</h3>
                 <p class="mt-2 text-sm text-purple-200/80">The crowd’s favorite tickets</p>
                 <div class="mt-6 flex flex-wrap gap-2">
-                    @forelse ($genreCounts as $genre => $count)
+                    @forelse ($stats->genreCounts as $genre => $count)
                         <span class="ticket-stub inline-flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-3 py-1.5 text-xs font-bold text-amber-200">
                             🎟️ {{ $genre }} <span class="text-amber-100/80">({{ $count }})</span>
                         </span>
@@ -409,7 +409,7 @@
                 <h3 class="text-xl font-black text-amber-100 drop-shadow-lg">⭐ Top Actors</h3>
                 <p class="mt-2 text-sm text-purple-200/80">Most featured performers</p>
                 <div class="mt-6 flex flex-wrap gap-2">
-                    @forelse ($actorCounts as $actor => $count)
+                    @forelse ($stats->actorCounts as $actor => $count)
                         <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200">
                             ⭐ {{ $actor }} <span class="text-emerald-100/80">({{ $count }})</span>
                         </span>
@@ -421,3 +421,4 @@
         </section>
     </div>
 </div>
+
