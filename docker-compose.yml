@@ -1,256 +1,299 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BRANCH: ${GIT_BRANCH:-main}
-    ports:
-      - "8000:8000"
-    volumes:
-      - storage-data:/var/www/html/storage
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: ${APP_URL:-http://localhost:8000}
-      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
-      NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-moviematcher}
-      DB_USERNAME: ${DB_USERNAME:-moviematcher}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-    restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      meilisearch:
-        condition: service_healthy
+    app:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                GIT_COMMIT: ${GIT_COMMIT:-unknown}
+                GIT_BRANCH: ${GIT_BRANCH:-main}
+        ports:
+            - "8000:8000"
+        volumes:
+            - storage-data:/var/www/html/storage
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
 
-  mysql:
-    image: mysql:8.0
-    volumes:
-      - ${MYSQL_DATA_PATH:-./mysql-data}:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_DATABASE: ${DB_DATABASE:-moviematcher}
-      MYSQL_USER: ${DB_USERNAME:-moviematcher}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+            # IMPORTANT: inside Docker, prefer the service name (not localhost)
+            APP_URL: ${APP_URL:-http://app:8000}
 
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+            DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
 
-  meilisearch:
-    image: getmeili/meilisearch:latest
-    ports:
-      - "7700:7700"
-    volumes:
-      - meilisearch-data:/meili_data
-    environment:
-      MEILI_NO_ANALYTICS: "true"
-      MEILI_ENV: production
-      MEILI_MASTER_KEY: "${MEILISEARCH_KEY}"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+            # Nightwatch: point the app to the agent container over the Docker network
+            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
+            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
 
-  queue-worker:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BRANCH: ${GIT_BRANCH:-main}
-    volumes:
-      - storage-data:/var/www/html/storage
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-moviematcher}
-      DB_USERNAME: ${DB_USERNAME:-moviematcher}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-    command: ["php", "artisan", "queue:work", "--tries=3", "--backoff=3"]
-    restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      meilisearch:
-        condition: service_healthy
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-moviematcher}
+            DB_USERNAME: ${DB_USERNAME:-moviematcher}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
 
-  queue-worker-2:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BRANCH: ${GIT_BRANCH:-main}
-    volumes:
-      - storage-data:/var/www/html/storage
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-moviematcher}
-      DB_USERNAME: ${DB_USERNAME:-moviematcher}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-    command: ["php", "artisan", "queue:work", "--tries=3", "--backoff=3"]
-    restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      meilisearch:
-        condition: service_healthy
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
 
-  scout-worker:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BRANCH: ${GIT_BRANCH:-main}
-    volumes:
-      - storage-data:/var/www/html/storage
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-moviematcher}
-      DB_USERNAME: ${DB_USERNAME:-moviematcher}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-    command: ["php", "artisan", "queue:work", "--queue=scout", "--tries=3", "--backoff=3"]
-    restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      meilisearch:
-        condition: service_healthy
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+        command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+        restart: unless-stopped
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
 
-  scheduler:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BRANCH: ${GIT_BRANCH:-main}
-    volumes:
-      - storage-data:/var/www/html/storage
-    environment:
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-moviematcher}
-      DB_USERNAME: ${DB_USERNAME:-moviematcher}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-    command: ["php", "artisan", "schedule:work"]
-    restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      meilisearch:
-        condition: service_healthy
+    mysql:
+        image: mysql:8.0
+        volumes:
+            - ${MYSQL_DATA_PATH:-./mysql-data}:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+            MYSQL_DATABASE: ${DB_DATABASE:-moviematcher}
+            MYSQL_USER: ${DB_USERNAME:-moviematcher}
+            MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 5s
+            timeout: 3s
+            retries: 5
 
-  nightwatch-agent:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      args:
-        GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        GIT_BRANCH: ${GIT_BRANCH:-main}
-    volumes:
-      - storage-data:/var/www/html/storage
-    environment:
-      APP_URL: ${APP_URL:-http://localhost:8000}
-      APP_ENV: production
-      APP_DEBUG: "false"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-moviematcher}
-      DB_USERNAME: ${DB_USERNAME:-moviematcher}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      MEILISEARCH_HOST: http://meilisearch:7700
-      MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-      NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-    command: ["php", "artisan", "nightwatch:agent"]
-    restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      meilisearch:
-        condition: service_healthy
+    redis:
+        image: redis:7-alpine
+        volumes:
+            - redis-data:/data
+        command: redis-server --appendonly yes
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 3s
+            retries: 5
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    restart: unless-stopped
-    depends_on:
-      - app
+    meilisearch:
+        image: getmeili/meilisearch:latest
+        ports:
+            - "7700:7700"
+        volumes:
+            - meilisearch-data:/meili_data
+        environment:
+            MEILI_NO_ANALYTICS: "true"
+            MEILI_ENV: production
+            MEILI_MASTER_KEY: "${MEILISEARCH_KEY}"
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+            interval: 5s
+            timeout: 3s
+            retries: 5
+
+    queue-worker:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                GIT_COMMIT: ${GIT_COMMIT:-unknown}
+                GIT_BRANCH: ${GIT_BRANCH:-main}
+        volumes:
+            - storage-data:/var/www/html/storage
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
+
+            # Keep consistent inside-Docker URL + Nightwatch config for queue telemetry
+            APP_URL: ${APP_URL:-http://app:8000}
+            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
+            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
+
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-moviematcher}
+            DB_USERNAME: ${DB_USERNAME:-moviematcher}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+        command: ["php", "artisan", "queue:work", "--tries=3", "--backoff=3"]
+        restart: unless-stopped
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+
+    queue-worker-2:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                GIT_COMMIT: ${GIT_COMMIT:-unknown}
+                GIT_BRANCH: ${GIT_BRANCH:-main}
+        volumes:
+            - storage-data:/var/www/html/storage
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
+
+            APP_URL: ${APP_URL:-http://app:8000}
+            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
+            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
+
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-moviematcher}
+            DB_USERNAME: ${DB_USERNAME:-moviematcher}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+        command: ["php", "artisan", "queue:work", "--tries=3", "--backoff=3"]
+        restart: unless-stopped
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+
+    scout-worker:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                GIT_COMMIT: ${GIT_COMMIT:-unknown}
+                GIT_BRANCH: ${GIT_BRANCH:-main}
+        volumes:
+            - storage-data:/var/www/html/storage
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
+
+            APP_URL: ${APP_URL:-http://app:8000}
+            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
+            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
+
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-moviematcher}
+            DB_USERNAME: ${DB_USERNAME:-moviematcher}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+        command: ["php", "artisan", "queue:work", "--queue=scout", "--tries=3", "--backoff=3"]
+        restart: unless-stopped
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+
+    scheduler:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                GIT_COMMIT: ${GIT_COMMIT:-unknown}
+                GIT_BRANCH: ${GIT_BRANCH:-main}
+        volumes:
+            - storage-data:/var/www/html/storage
+        environment:
+            APP_ENV: production
+            APP_DEBUG: "false"
+
+            APP_URL: ${APP_URL:-http://app:8000}
+            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
+            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
+
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-moviematcher}
+            DB_USERNAME: ${DB_USERNAME:-moviematcher}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+        command: ["php", "artisan", "schedule:work"]
+        restart: unless-stopped
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+
+    nightwatch-agent:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                GIT_COMMIT: ${GIT_COMMIT:-unknown}
+                GIT_BRANCH: ${GIT_BRANCH:-main}
+        volumes:
+            - storage-data:/var/www/html/storage
+        environment:
+            APP_URL: ${APP_URL:-http://app:8000}
+            APP_ENV: production
+            APP_DEBUG: "false"
+
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-moviematcher}
+            DB_USERNAME: ${DB_USERNAME:-moviematcher}
+            DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+
+            MEILISEARCH_HOST: http://meilisearch:7700
+            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+
+            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
+        # IMPORTANT: listen on all interfaces so other containers can connect
+        command: ["php", "artisan", "nightwatch:agent", "--listen-on=0.0.0.0:2407"]
+        restart: unless-stopped
+        depends_on:
+            mysql:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            meilisearch:
+                condition: service_healthy
+
+    cloudflared:
+        image: cloudflare/cloudflared:latest
+        command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+        restart: unless-stopped
+        depends_on:
+            - app
 
 volumes:
-  storage-data:
-  redis-data:
-  meilisearch-data:
+    storage-data:
+    redis-data:
+    meilisearch-data:
