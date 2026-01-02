@@ -18,9 +18,6 @@
                         <flux:navlist.item icon="book-open-text" :href="url(config('pulse.path', 'pulse'))" :current="request()->is(config('pulse.path', 'pulse'))">
                             {{ __('Pulse') }}
                         </flux:navlist.item>
-                        <flux:navlist.item icon="layout-grid" :href="url(config('telescope.path', 'telescope'))" :current="request()->is(config('telescope.path', 'telescope'))">
-                            {{ __('Telescope') }}
-                        </flux:navlist.item>
                     @endif
                 </flux:navlist.group>
             </flux:navlist>
