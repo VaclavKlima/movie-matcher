@@ -205,7 +205,7 @@
                 @endif
             </div>
 
-            @if ($stats->nonHostStats->isEmpty())
+            @if ($stats->nonHostStats->toCollection()->isEmpty())
                 <div class="mt-6 flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-600/50 bg-slate-900/40 px-6 py-10 text-center text-purple-200/80">
                     <span class="text-4xl opacity-70">🎬</span>
                     <p class="text-sm">No additional cast stats to show.</p>

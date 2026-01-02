@@ -10,6 +10,7 @@ use App\Models\MovieVote;
 use App\Models\Room;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
+use Spatie\LaravelData\DataCollection;
 
 class GetRoomStats
 {
@@ -106,9 +107,9 @@ class GetRoomStats
             );
         });
 
-        $participantStatsData = ParticipantStatsData::collect($participantStats);
+        $participantStatsData = new DataCollection(ParticipantStatsData::class, $participantStats);
         $currentParticipantStats = $currentParticipant
-            ? $participantStatsData->firstWhere('participant.id', $currentParticipant->id)
+            ? $participantStatsData->toCollection()->firstWhere('participant.id', $currentParticipant->id)
             : null;
         $nonHostStats = $participantStatsData;
 
