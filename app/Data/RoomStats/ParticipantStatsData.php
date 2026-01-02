@@ -13,6 +13,5 @@ class ParticipantStatsData extends Data
         public int $no,
         public int $total,
         public int $approval,
-    ) {
-    }
+    ) {}
 }

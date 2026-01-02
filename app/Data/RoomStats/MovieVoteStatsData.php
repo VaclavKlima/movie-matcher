@@ -11,6 +11,5 @@ class MovieVoteStatsData extends Data
         public int $yes,
         public int $no,
         public int $total,
-    ) {
-    }
+    ) {}
 }

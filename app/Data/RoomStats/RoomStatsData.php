@@ -36,6 +36,5 @@ class RoomStatsData extends Data
         public array $mostDislikedIds,
         public Collection $mostDislikedMovies,
         public Collection $voteStatsByMovieId,
-    ) {
-    }
+    ) {}
 }

@@ -3,13 +3,10 @@
 namespace App\Providers;
 
 use App\Jobs\ScrapeMovieJob;
-use App\Models\Movie;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Nightwatch\Facades\Nightwatch;
 use Laravel\Nightwatch\Records\QueuedJob;
 use Laravel\Scout\Jobs\MakeSearchable;
-use Meilisearch\Client;
 
 class NightwatchServiceProvider extends ServiceProvider
 {
