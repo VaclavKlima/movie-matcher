@@ -221,8 +221,6 @@ services:
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_URL: ${APP_URL:-http://localhost:8000}
-      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
@@ -233,6 +231,7 @@ services:
       REDIS_PORT: 6379
       MEILISEARCH_HOST: http://meilisearch:7700
       MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
+      NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
     command: ["php", "artisan", "nightwatch:agent"]
     restart: unless-stopped
     depends_on:
