@@ -17,7 +17,7 @@ class TmdbScrapeMoviesCommand extends Command
     {
         $url = 'https://files.tmdb.org/p/exports/movie_ids_:month_:day_:year.json.gz';
         $apiKey = config('tmdb.read_access_token');
-        $date = now()->subDays(7);
+        $date = now()->subDays(30);
 
         $url = str_replace([
             ':month', ':day', ':year',
@@ -29,57 +29,84 @@ class TmdbScrapeMoviesCommand extends Command
 
         $this->info('Downloading TMDB movie ids export...');
         $this->info("URL: {$url}");
-        $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
-            ->timeout(0)
-            ->withOptions(['stream' => true])
-            ->get($url);
+        $this->info("Date: {$date->toDateString()}");
 
-        $body = $response->toPsrResponse()->getBody();
-        $inflate = inflate_init(ZLIB_ENCODING_GZIP);
-        $movies = collect();
-        $buffer = '';
+        try {
+            $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
+                ->timeout(300)
+                ->withOptions(['stream' => true])
+                ->get($url);
 
-        while (! $body->eof()) {
-            $chunk = $body->read(1024 * 1024);
-            if ($chunk === '') {
-                break;
-            }
+            $this->info("HTTP Status: {$response->status()}");
 
-            $decoded = inflate_add(
-                $inflate,
-                $chunk,
-                $body->eof() ? ZLIB_FINISH : ZLIB_SYNC_FLUSH
-            );
-            if ($decoded === false) {
-                $this->error('Failed to decode TMDB export stream.');
-
+            if (!$response->successful()) {
+                $this->error("Failed to download file. HTTP Status: {$response->status()}");
+                $this->error("Response: {$response->body()}");
                 return;
             }
 
-            $buffer .= $decoded;
-            while (($newlinePos = strpos($buffer, "\n")) !== false) {
-                $line = trim(substr($buffer, 0, $newlinePos));
-                $buffer = substr($buffer, $newlinePos + 1);
-                if ($line === '') {
-                    continue;
+            $body = $response->toPsrResponse()->getBody();
+            $inflate = inflate_init(ZLIB_ENCODING_GZIP);
+            $movies = collect();
+            $buffer = '';
+            $bytesDownloaded = 0;
+            $chunkCount = 0;
+
+            $this->info('Starting stream download...');
+
+            while (! $body->eof()) {
+                $chunk = $body->read(1024 * 1024);
+                if ($chunk === '') {
+                    break;
                 }
 
+                $bytesDownloaded += strlen($chunk);
+                $chunkCount++;
+
+                if ($chunkCount % 10 === 0) {
+                    $this->info("Downloaded: " . round($bytesDownloaded / 1024 / 1024, 2) . " MB ({$movies->count()} movies parsed)");
+                }
+
+                $decoded = inflate_add(
+                    $inflate,
+                    $chunk,
+                    $body->eof() ? ZLIB_FINISH : ZLIB_SYNC_FLUSH
+                );
+                if ($decoded === false) {
+                    $this->error('Failed to decode TMDB export stream.');
+                    return;
+                }
+
+                $buffer .= $decoded;
+                while (($newlinePos = strpos($buffer, "\n")) !== false) {
+                    $line = trim(substr($buffer, 0, $newlinePos));
+                    $buffer = substr($buffer, $newlinePos + 1);
+                    if ($line === '') {
+                        continue;
+                    }
+
+                    $movie = json_decode($line, true);
+                    if (is_array($movie)) {
+                        $movies->push($movie);
+                    }
+                }
+            }
+
+            $this->info('Download complete.');
+            $line = trim($buffer);
+            if ($line !== '') {
                 $movie = json_decode($line, true);
                 if (is_array($movie)) {
                     $movies->push($movie);
                 }
             }
+            $this->info('Loaded movie ids into memory.');
+        } catch (\Exception $e) {
+            $this->error('Error downloading or processing TMDB export:');
+            $this->error($e->getMessage());
+            $this->error('Stack trace: ' . $e->getTraceAsString());
+            return;
         }
-
-        $this->info('Download complete.');
-        $line = trim($buffer);
-        if ($line !== '') {
-            $movie = json_decode($line, true);
-            if (is_array($movie)) {
-                $movies->push($movie);
-            }
-        }
-        $this->info('Loaded movie ids into memory.');
 
         $minPopularity = (float) config('tmdb.min_popularity', 0.5);
 
