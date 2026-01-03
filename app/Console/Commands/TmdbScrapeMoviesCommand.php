@@ -27,6 +27,7 @@ class TmdbScrapeMoviesCommand extends Command
 
         $this->info('Downloading TMDB movie ids export...');
         $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
+            ->timeout(0)
             ->withOptions(['stream' => true])
             ->get($url)
             ->throw();
@@ -39,6 +40,7 @@ class TmdbScrapeMoviesCommand extends Command
         $inflate = inflate_init(ZLIB_ENCODING_GZIP);
         $movies = collect();
         $buffer = '';
+        $downloaded = 0;
 
         while (! $body->eof()) {
             $chunk = $body->read(1024 * 1024);
@@ -51,6 +53,11 @@ class TmdbScrapeMoviesCommand extends Command
                 $chunk,
                 $body->eof() ? ZLIB_FINISH : ZLIB_SYNC_FLUSH
             );
+            if ($decoded === false) {
+                $this->error('Failed to decode TMDB export stream.');
+
+                return;
+            }
 
             $buffer .= $decoded;
             while (($newlinePos = strpos($buffer, "\n")) !== false) {
@@ -66,11 +73,18 @@ class TmdbScrapeMoviesCommand extends Command
                 }
             }
 
+            $downloaded += strlen($chunk);
             $progressBar->advance($contentLength > 0 ? strlen($chunk) : 1);
         }
 
         $progressBar->finish();
         $this->newLine();
+        if ($contentLength > 0 && $downloaded < $contentLength) {
+            $this->error('Download ended early before receiving the full file.');
+
+            return;
+        }
+        $this->info('Download complete.');
         $line = trim($buffer);
         if ($line !== '') {
             $movie = json_decode($line, true);
