@@ -22,10 +22,13 @@ class TmdbScrapeMoviesCommand extends Command
         $url = str_replace([
             ':month', ':day', ':year',
         ], [
-            $date->month, $date->day, $date->year,
+            str_pad($date->month, 2, '0', STR_PAD_LEFT),
+            str_pad($date->day, 2, '0', STR_PAD_LEFT),
+            $date->year,
         ], $url);
 
         $this->info('Downloading TMDB movie ids export...');
+        $this->info("URL: {$url}");
         $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
             ->timeout(0)
             ->withOptions(['stream' => true])
