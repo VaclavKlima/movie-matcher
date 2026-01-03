@@ -32,8 +32,7 @@ class TmdbScrapeMoviesCommand extends Command
         $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
             ->timeout(0)
             ->withOptions(['stream' => true])
-            ->get($url)
-            ->throw();
+            ->get($url);
 
         $body = $response->toPsrResponse()->getBody();
         $inflate = inflate_init(ZLIB_ENCODING_GZIP);
