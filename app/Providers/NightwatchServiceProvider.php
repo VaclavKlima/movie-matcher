@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Jobs\ScrapeMovieJob;
+use App\Jobs\TMDB\FetchMovieJob;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Nightwatch\Facades\Nightwatch;
 use Laravel\Nightwatch\Records\QueuedJob;
@@ -25,7 +25,7 @@ class NightwatchServiceProvider extends ServiceProvider
     {
         Nightwatch::rejectQueuedJobs(function (QueuedJob $job) {
             return in_array($job->name, [
-                ScrapeMovieJob::class,
+                FetchMovieJob::class,
                 MakeSearchable::class,
             ]);
         });

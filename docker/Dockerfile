@@ -19,6 +19,7 @@ RUN apt-get update \
         libsqlite3-dev \
         libxml2-dev \
         libzip-dev \
+        zlib1g-dev \
         libpng-dev \
         libjpeg-dev \
         libfreetype6-dev \
@@ -35,6 +36,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         pdo \
         pdo_mysql \
         pdo_sqlite \
+        zlib \
         zip \
         gd
 

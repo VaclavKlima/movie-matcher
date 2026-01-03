@@ -22,7 +22,8 @@
         "livewire/flux": "^2.1.1",
         "livewire/volt": "^1.7.0",
         "meilisearch/meilisearch-php": "^1.16",
-        "spatie/laravel-data": "^4.18"
+        "spatie/laravel-data": "^4.18",
+        "ext-zlib": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
