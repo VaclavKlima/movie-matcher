@@ -12,7 +12,5 @@ class IdMovie extends Data
         public string $original_title,
         public float $popularity,
         public bool $video,
-    )
-    {
-    }
+    ) {}
 }

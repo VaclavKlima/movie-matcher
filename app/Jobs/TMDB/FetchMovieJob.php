@@ -21,16 +21,14 @@ class FetchMovieJob implements ShouldQueue
 
     public function __construct(
         private readonly IdMovie $idMovie,
-    )
-    {
-    }
+    ) {}
 
     public function handle(): void
     {
         $url = 'https://api.themoviedb.org/3/movie/{movie_id}';
         $url = str_replace('{movie_id}', $this->idMovie->id, $url);
 
-        $response = Http::withHeader('Authorization', 'Bearer ' . config('tmdb.read_access_token'))
+        $response = Http::withHeader('Authorization', 'Bearer '.config('tmdb.read_access_token'))
             ->get($url, ['append_to_response' => 'credits'])
             ->throw();
 

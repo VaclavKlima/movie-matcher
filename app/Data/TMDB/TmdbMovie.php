@@ -38,6 +38,5 @@ class TmdbMovie extends Data
         public bool $video,
         public float $vote_average,
         public int $vote_count,
-    ) {
-    }
+    ) {}
 }

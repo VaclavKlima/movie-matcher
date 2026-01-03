@@ -21,9 +21,9 @@ class TmdbScrapeMoviesCommand extends Command
         $date = now()->subDays(7);
 
         $url = str_replace([
-            ':month', ':day', ':year'
+            ':month', ':day', ':year',
         ], [
-            $date->month, $date->day, $date->year
+            $date->month, $date->day, $date->year,
         ], $url);
 
         $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
@@ -41,6 +41,7 @@ class TmdbScrapeMoviesCommand extends Command
         $handle = fopen($filePath, 'wb');
         if ($handle === false) {
             $this->error('Unable to write movie ids to storage.');
+
             return;
         }
 
@@ -69,6 +70,7 @@ class TmdbScrapeMoviesCommand extends Command
         $handle = fopen($filePath, 'rb');
         if ($handle === false) {
             $this->error('Unable to read movie ids from storage.');
+
             return;
         }
 
@@ -93,7 +95,7 @@ class TmdbScrapeMoviesCommand extends Command
             ->sortByDesc('popularity')
             ->values();
 
-        $this->info("Loaded {$movies->count()} movies sorted by popularity.");  
+        $this->info("Loaded {$movies->count()} movies sorted by popularity.");
 
         $progressBar = $this->output->createProgressBar($movies->count());
         $progressBar->start();
