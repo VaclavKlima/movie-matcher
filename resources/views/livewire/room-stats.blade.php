@@ -14,17 +14,7 @@
     }
 @endphp
 
-<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
-    {{-- Cinema Background Effects --}}
-    <div class="pointer-events-none absolute inset-0">
-        <div class="absolute -right-32 top-16 h-64 w-64 animate-film-reel rounded-full border-8 border-amber-400/20 opacity-20"></div>
-        <div class="absolute -left-40 bottom-32 h-80 w-80 animate-film-reel rounded-full border-8 border-purple-400/20 opacity-10" style="animation-delay: -8s;"></div>
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="animate-spotlight absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-amber-300/10 to-transparent"></div>
-        </div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(139,92,246,0.15),transparent_50%)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_80%,rgba(251,191,36,0.1),transparent_50%)]"></div>
-    </div>
+<div class="relative min-h-screen">
 
     <div class="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10 lg:gap-12 lg:px-10 lg:py-12">
         {{-- Header --}}
@@ -78,14 +68,9 @@
             @if ($stats->selectedMovie)
                 <div class="mt-6 grid gap-6 lg:grid-cols-[0.4fr_0.6fr]">
                     <div class="film-strip-border relative flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-slate-700/50 bg-gradient-to-br from-slate-950 to-slate-900 p-4 shadow-xl transition-transform duration-300 hover:scale-[1.01]">
-                        @if ($stats->selectedMovie->poster_image)
-                            @php
-                                $selectedPosterSrc = str_starts_with($stats->selectedMovie->poster_image, 'data:')
-                                    ? $stats->selectedMovie->poster_image
-                                    : 'data:image/jpeg;base64,'.$stats->selectedMovie->poster_image;
-                            @endphp
+                        @if ($stats->selectedMovie->poster_url)
                             <img
-                                src="{{ $selectedPosterSrc }}"
+                                src="{{ $stats->selectedMovie->poster_url }}"
                                 alt="{{ $stats->selectedMovie->name }}"
                                 class="h-full w-full object-contain"
                             />
@@ -270,11 +255,7 @@
                         @forelse ($stats->otherMatchedMovies as $match)
                             @php
                                 $movie = $match->movie;
-                                $posterSrc = $movie && $movie->poster_image
-                                    ? (str_starts_with($movie->poster_image, 'data:')
-                                        ? $movie->poster_image
-                                        : 'data:image/jpeg;base64,'.$movie->poster_image)
-                                    : null;
+                                $posterSrc = $movie?->poster_url;
                             @endphp
                             <div class="rounded-xl border border-emerald-400/30 bg-slate-900/60 p-3 text-center transition-all duration-300 hover:border-emerald-300/60 hover:bg-emerald-500/10">
                                 <div class="film-strip-border relative flex h-32 w-full items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 to-slate-900">
@@ -304,11 +285,7 @@
                             @php
                                 $movie = $stats->almostMatchedMovies->get($movieId);
                                 $voteStats = $stats->voteStatsByMovieId->get($movieId);
-                                $posterSrc = $movie && $movie->poster_image
-                                    ? (str_starts_with($movie->poster_image, 'data:')
-                                        ? $movie->poster_image
-                                        : 'data:image/jpeg;base64,'.$movie->poster_image)
-                                    : null;
+                                $posterSrc = $movie?->poster_url;
                             @endphp
                             <div class="rounded-xl border border-amber-400/30 bg-slate-900/60 p-3 text-center transition-all duration-300 hover:border-amber-300/60 hover:bg-amber-500/10">
                                 <div class="film-strip-border relative flex h-32 w-full items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 to-slate-900">
@@ -341,11 +318,7 @@
                             @php
                                 $movie = $stats->mostDislikedMovies->get($movieId);
                                 $voteStats = $stats->voteStatsByMovieId->get($movieId);
-                                $posterSrc = $movie && $movie->poster_image
-                                    ? (str_starts_with($movie->poster_image, 'data:')
-                                        ? $movie->poster_image
-                                        : 'data:image/jpeg;base64,'.$movie->poster_image)
-                                    : null;
+                                $posterSrc = $movie?->poster_url;
                             @endphp
                             <div class="rounded-xl border border-rose-400/30 bg-slate-900/60 p-3 text-center transition-all duration-300 hover:border-rose-300/60 hover:bg-rose-500/10">
                                 <div class="film-strip-border relative flex h-32 w-full items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 to-slate-900">

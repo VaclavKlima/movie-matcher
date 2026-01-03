@@ -12,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('actors', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('tmdb_id')->nullable()->unique();
             $table->string('name');
             $table->timestamps();
         });

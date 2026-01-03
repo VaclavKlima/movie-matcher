@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Genre extends Model
 {
     protected $fillable = [
+        'tmdb_id',
         'name',
     ];
 

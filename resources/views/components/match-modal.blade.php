@@ -114,14 +114,9 @@
                 <div class="mt-6 sm:mt-8 overflow-hidden rounded-xl sm:rounded-2xl border-2 border-slate-700/50 bg-gradient-to-br from-slate-900 to-slate-800 text-left shadow-2xl">
                     {{-- Poster --}}
                     <div class="film-strip-border relative flex h-48 sm:h-64 md:h-72 w-full items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 p-3 sm:p-4">
-                        @if ($matchedMovie->poster_image)
-                            @php
-                                $matchedPosterSrc = str_starts_with($matchedMovie->poster_image, 'data:')
-                                    ? $matchedMovie->poster_image
-                                    : 'data:image/jpeg;base64,'.$matchedMovie->poster_image;
-                            @endphp
+                        @if ($matchedMovie->poster_url)
                             <img
-                                src="{{ $matchedPosterSrc }}"
+                                src="{{ $matchedMovie->poster_url }}"
                                 alt="{{ $matchedMovie->name }}"
                                 class="h-full w-full object-contain drop-shadow-2xl"
                             />

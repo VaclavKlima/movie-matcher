@@ -8,15 +8,11 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('movies', function (Blueprint $table) {
-            $table->longText('poster_image')->nullable()->change();
-        });
+        // No-op: poster_url stores remote URLs, no column changes needed.
     }
 
     public function down()
     {
-        Schema::table('movies', function (Blueprint $table) {
-            $table->string('poster_image')->nullable()->change();
-        });
+        // No-op.
     }
 };

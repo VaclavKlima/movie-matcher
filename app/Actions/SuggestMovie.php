@@ -57,15 +57,13 @@ final class SuggestMovie
 
     private const float RATING_SCORE_WEIGHT = 0.20;
 
-    private const float FILM_RANK_WEIGHT = 0.20;
-
-    private const float POPULARITY_RANK_WEIGHT = 0.20;
+    private const float POPULARITY_SCORE_WEIGHT = 0.40;
 
     private const float RATING_SCORE_MAX = 5.0;
 
-    private const float RANK_SCORE_MAX = 5.0;
+    private const float POPULARITY_SCORE_MAX = 5.0;
 
-    private const float RANK_SCORE_RANGE = 1000.0;
+    private const float POPULARITY_LOG_MAX = 3.0;
 
     private const int TASTE_CACHE_TTL_SECONDS = 60;
 
@@ -159,8 +157,7 @@ final class SuggestMovie
             'year_score' => (float) ($pickedCandidate->year_score ?? 0.0),
 
             'rating_score' => (float) ($pickedCandidate->rating_score ?? 0.0),
-            'film_rank_score' => (float) ($pickedCandidate->film_rank_score ?? 0.0),
-            'film_popularity_score' => (float) ($pickedCandidate->film_popularity_score ?? 0.0),
+            'popularity_score' => (float) ($pickedCandidate->popularity_score ?? 0.0),
 
             'novelty_bonus' => (float) ($pickedCandidate->novelty_bonus ?? 0.0),
 
@@ -240,8 +237,7 @@ final class SuggestMovie
             'year_score' => self::YEAR_SCORE_WEIGHT,
 
             'rating_score' => self::RATING_SCORE_WEIGHT,
-            'film_rank_score' => self::FILM_RANK_WEIGHT,
-            'film_popularity_score' => self::POPULARITY_RANK_WEIGHT,
+            'popularity_score' => self::POPULARITY_SCORE_WEIGHT,
         ];
 
         return [
@@ -434,26 +430,35 @@ final class SuggestMovie
 
         $weights = $tasteProfile['weights'];
 
-        // These should match the popularity_score computed in Movie::toSearchableArray()
-        $ratingScoreExpression = '(case when movies.average_rating is null then 0 else ('.self::RATING_SCORE_MAX.' * (movies.average_rating / 100.0)) end)';
-        $filmRankScoreExpression = '(case when movies.film_rank is null then 0 else ('.self::RANK_SCORE_MAX.' * (1 - ((movies.film_rank - 1) / '.self::RANK_SCORE_RANGE.'))) end)';
-        $filmPopularityScoreExpression = '(case when movies.film_popularity_rank is null then 0 else ('.self::RANK_SCORE_MAX.' * (1 - ((movies.film_popularity_rank - 1) / '.self::RANK_SCORE_RANGE.'))) end)';
+        // Rating score based on TMDB vote_average (0..10)
+        $ratingScoreExpression =
+            '(case when movies.vote_average is null then 0 else (' .
+            self::RATING_SCORE_MAX . ' * (movies.vote_average / 10.0)) end)';
+
+        // Popularity score based on TMDB popularity (log scaled)
+        // ✅ FIXED: removed the extra ")" after the least(...) expression
+        $popularityScoreExpression =
+            '(case when movies.popularity is null then 0 else least(' .
+            self::POPULARITY_SCORE_MAX . ', (log10(movies.popularity + 1) / ' .
+            self::POPULARITY_LOG_MAX . ') * ' . self::POPULARITY_SCORE_MAX .
+            ') end)';
 
         /**
-         * FIX: No bindings here. We embed an integer literal to avoid placeholder duplication.
+         * Year score uses avg_year from taste profile. If there is no avg_year, keep it 0.
+         * We embed the integer year into SQL to avoid binding placeholder duplication issues.
          */
         $yearScoreExpression = '0';
         if ($hasYearTaste) {
             $averageLikedYearInteger = (int) $averageLikedYear;
 
             $yearDeltaExpression =
-                "(case when abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) < ".self::YEAR_SCORE_RANGE.' '.
-                "then abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) else ".self::YEAR_SCORE_RANGE.' end)';
+                "(case when abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) < " . self::YEAR_SCORE_RANGE . ' ' .
+                "then abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) else " . self::YEAR_SCORE_RANGE . ' end)';
 
-            $yearNormalizedExpression = "(1.0 * {$yearDeltaExpression} / ".self::YEAR_SCORE_RANGE.')';
+            $yearNormalizedExpression = "(1.0 * {$yearDeltaExpression} / " . self::YEAR_SCORE_RANGE . ')';
 
             $yearScoreExpression =
-                '('.self::YEAR_SCORE_MAX.' - (2 * '.self::YEAR_SCORE_MAX.") * {$yearNormalizedExpression} * {$yearNormalizedExpression})";
+                '(' . self::YEAR_SCORE_MAX . ' - (2 * ' . self::YEAR_SCORE_MAX . ") * {$yearNormalizedExpression} * {$yearNormalizedExpression})";
         }
 
         // Restrict to Meili candidates, then do room-specific exclusions in MySQL
@@ -556,17 +561,16 @@ final class SuggestMovie
             $actorNoveltyExpression = 'coalesce(avg(greatest(0, actor_like_averages.avg_total - coalesce(actor_like_counts.total, 0))), 0)';
         }
 
-        $noveltyBonusExpression = '(least('.self::NOVELTY_BONUS_MAX.", ({$genreNoveltyExpression} + {$actorNoveltyExpression}) / 2))";
+        $noveltyBonusExpression = '(least(' . self::NOVELTY_BONUS_MAX . ", ({$genreNoveltyExpression} + {$actorNoveltyExpression}) / 2))";
 
         $baseScoreExpression =
-            '('.
-            $weights['room_likes'].' * count(distinct room_likes.room_participant_id) + '.
-            $weights['genre_score'].' * '.$genreScoreExpression.' + '.
-            $weights['actor_score'].' * '.$actorScoreExpression.' + '.
-            $weights['year_score'].' * '.$yearScoreExpression.' + '.
-            $weights['rating_score'].' * '.$ratingScoreExpression.' + '.
-            $weights['film_rank_score'].' * '.$filmRankScoreExpression.' + '.
-            $weights['film_popularity_score'].' * '.$filmPopularityScoreExpression.
+            '(' .
+            $weights['room_likes'] . ' * count(distinct room_likes.room_participant_id) + ' .
+            $weights['genre_score'] . ' * ' . $genreScoreExpression . ' + ' .
+            $weights['actor_score'] . ' * ' . $actorScoreExpression . ' + ' .
+            $weights['year_score'] . ' * ' . $yearScoreExpression . ' + ' .
+            $weights['rating_score'] . ' * ' . $ratingScoreExpression . ' + ' .
+            $weights['popularity_score'] . ' * ' . $popularityScoreExpression .
             ')';
 
         $candidateQuery = Movie::query()
@@ -613,25 +617,23 @@ final class SuggestMovie
         return $candidateQuery
             ->select(['movies.id'])
             ->selectRaw('count(distinct room_likes.room_participant_id) as room_likes_count')
-            ->selectRaw($genreScoreExpression.' as genre_score')
-            ->selectRaw($actorScoreExpression.' as actor_score')
-            ->selectRaw($yearScoreExpression.' as year_score')
-            ->selectRaw($ratingScoreExpression.' as rating_score')
-            ->selectRaw($filmRankScoreExpression.' as film_rank_score')
-            ->selectRaw($filmPopularityScoreExpression.' as film_popularity_score')
-            ->selectRaw($noveltyBonusExpression.' as novelty_bonus')
-            ->selectRaw($baseScoreExpression.' as score')
-            ->selectRaw('('.$baseScoreExpression.' + '.$noveltyBonusExpression.') as adjusted_score')
+            ->selectRaw($genreScoreExpression . ' as genre_score')
+            ->selectRaw($actorScoreExpression . ' as actor_score')
+            ->selectRaw($yearScoreExpression . ' as year_score')
+            ->selectRaw($ratingScoreExpression . ' as rating_score')
+            ->selectRaw($popularityScoreExpression . ' as popularity_score')
+            ->selectRaw($noveltyBonusExpression . ' as novelty_bonus')
+            ->selectRaw($baseScoreExpression . ' as score')
+            ->selectRaw('(' . $baseScoreExpression . ' + ' . $noveltyBonusExpression . ') as adjusted_score')
             ->groupBy('movies.id')
             ->orderByDesc('adjusted_score');
     }
 
     private function buildFallbackQuery(int $roomId, int $participantId, array $fallbackMovieIds)
     {
-        $ratingScoreExpression = '(case when movies.average_rating is null then 0 else ('.self::RATING_SCORE_MAX.' * (movies.average_rating / 100.0)) end)';
-        $filmRankScoreExpression = '(case when movies.film_rank is null then 0 else ('.self::RANK_SCORE_MAX.' * (1 - ((movies.film_rank - 1) / '.self::RANK_SCORE_RANGE.'))) end)';
-        $filmPopularityScoreExpression = '(case when movies.film_popularity_rank is null then 0 else ('.self::RANK_SCORE_MAX.' * (1 - ((movies.film_popularity_rank - 1) / '.self::RANK_SCORE_RANGE.'))) end)';
-        $popularityScoreExpression = "({$ratingScoreExpression} + {$filmRankScoreExpression} + {$filmPopularityScoreExpression})";
+        $ratingScoreExpression = '(case when movies.vote_average is null then 0 else ('.self::RATING_SCORE_MAX.' * (movies.vote_average / 10.0)) end)';
+        $popularityScoreExpression = '(case when movies.popularity is null then 0 else least('.self::POPULARITY_SCORE_MAX.', (log10(movies.popularity + 1) / '.self::POPULARITY_LOG_MAX.') * '.self::POPULARITY_SCORE_MAX.')) end)';
+        $popularityScoreExpression = "({$ratingScoreExpression} + {$popularityScoreExpression})";
 
         return Movie::query()
             ->select('movies.id')
@@ -648,8 +650,8 @@ final class SuggestMovie
                 $subquery->selectRaw('1')
                     ->from('movie_votes as mv_down')
                     ->whereColumn('mv_down.movie_id', 'movies.id')
-                    ->where('mv_down.room_id', $roomId)
-                    ->where('mv_down.decision', 'down');
+                    ->where('mv_down.room_id', '=', $roomId)
+                    ->where('mv_down.decision', '=', 'down');
             })
             ->orderByDesc('popularity_score');
     }

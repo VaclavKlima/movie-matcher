@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Actor extends Model
 {
     protected $fillable = [
+        'tmdb_id',
         'name',
     ];
 

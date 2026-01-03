@@ -8,15 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('movies', function (Blueprint $table): void {
-            $table->unsignedInteger('film_rank')->nullable()->after('average_rating');
-        });
+        // No-op: film rank is not used with TMDB data.
     }
 
     public function down(): void
     {
-        Schema::table('movies', function (Blueprint $table): void {
-            $table->dropColumn('film_rank');
-        });
+        // No-op.
     }
 };

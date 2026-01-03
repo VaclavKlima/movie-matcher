@@ -8,15 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('movies', function (Blueprint $table): void {
-            $table->unsignedInteger('film_popularity_rank')->nullable()->after('film_rank');
-        });
+        // No-op: TMDB popularity is stored directly.
     }
 
     public function down(): void
     {
-        Schema::table('movies', function (Blueprint $table): void {
-            $table->dropColumn('film_popularity_rank');
-        });
+        // No-op.
     }
 };

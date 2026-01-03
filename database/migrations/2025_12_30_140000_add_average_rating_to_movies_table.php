@@ -8,15 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('movies', function (Blueprint $table): void {
-            $table->unsignedTinyInteger('average_rating')->nullable()->after('description');
-        });
+        // No-op: vote_average is created in the base movies migration.
     }
 
     public function down(): void
     {
-        Schema::table('movies', function (Blueprint $table): void {
-            $table->dropColumn('average_rating');
-        });
+        // No-op.
     }
 };

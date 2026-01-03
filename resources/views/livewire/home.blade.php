@@ -1,27 +1,4 @@
-<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
-    {{-- Cinema Background Effects --}}
-    <div class="pointer-events-none absolute inset-0">
-        {{-- Film reel decorative elements --}}
-        <div class="absolute -right-32 top-20 h-64 w-64 animate-film-reel rounded-full border-8 border-amber-400/20 opacity-20"></div>
-        <div class="absolute -left-32 bottom-40 h-96 w-96 animate-film-reel rounded-full border-8 border-purple-400/20 opacity-10" style="animation-delay: -10s;"></div>
-
-        {{-- Spotlight effects --}}
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="animate-spotlight absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-amber-300/10 to-transparent"></div>
-        </div>
-
-        {{-- Gradient overlays --}}
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(139,92,246,0.15),transparent_50%)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(251,191,36,0.1),transparent_50%)]"></div>
-
-        {{-- Stars/lights --}}
-        <div class="absolute inset-0">
-            <div class="animate-marquee-lights absolute left-[10%] top-[15%] h-2 w-2 rounded-full bg-amber-300"></div>
-            <div class="animate-marquee-lights absolute left-[85%] top-[25%] h-2 w-2 rounded-full bg-purple-300" style="animation-delay: 0.5s;"></div>
-            <div class="animate-marquee-lights absolute left-[60%] top-[70%] h-2 w-2 rounded-full bg-amber-300" style="animation-delay: 1s;"></div>
-            <div class="animate-marquee-lights absolute left-[20%] top-[80%] h-2 w-2 rounded-full bg-purple-300" style="animation-delay: 1.5s;"></div>
-        </div>
-    </div>
+<div class="relative min-h-screen">
 
     <div class="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-14 lg:px-10">
         <header class="max-w-3xl">
