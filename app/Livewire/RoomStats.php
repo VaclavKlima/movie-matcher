@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Actions\GetRoomStats;
 use App\Models\Room;
 use App\Support\PlayerCookie;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
@@ -22,7 +23,7 @@ class RoomStats extends Component
         $this->roomCode = $room->code;
     }
 
-    public function render(GetRoomStats $getRoomStats)
+    public function render(GetRoomStats $getRoomStats): View
     {
         $playerCookieId = PlayerCookie::getOrCreate();
         $roomId = $this->roomId;

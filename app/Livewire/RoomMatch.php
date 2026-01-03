@@ -9,6 +9,7 @@ use App\Models\Room;
 use App\Models\RoomMovieMatch;
 use App\Models\RoomParticipant;
 use App\Support\PlayerCookie;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
@@ -43,42 +44,31 @@ class RoomMatch extends Component
     public function mount(?string $code = null): void
     {
         $room = Room::where('code', $code)->firstOrFail();
-        $playerCookieId = PlayerCookie::getOrCreate();
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
             return;
         }
+
         $participant = RoomParticipant::where('room_id', $room->id)
-            ->where('player_cookie_id', $playerCookieId)
+            ->where('session_id', Session::getId())
             ->whereNull('kicked_at')
             ->first();
 
-        if (! $participant) {
-            $participant = RoomParticipant::where('room_id', $room->id)
-                ->where('session_id', Session::getId())
-                ->whereNull('kicked_at')
-                ->first();
-
-            if ($participant && ! $participant->player_cookie_id) {
-                $participant->update(['player_cookie_id' => $playerCookieId]);
-            }
-        }
-
-        if (! $room->started_at) {
+        if (!$room->started_at) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
 
             return;
         }
 
-        if (! $participant) {
+        if (!$participant) {
             abort(403, 'This room is already matching.');
         }
 
         $this->roomId = $room->id;
         $this->participantId = $participant->id;
         $this->roomCode = $room->code;
-        $this->isHost = (bool) $participant->is_host;
+        $this->isHost = (bool)$participant->is_host;
         $this->debugSuggest = request()->boolean('debug');
         $this->lastContinueRequestedAt = $room->continue_hunting_requested_at?->toISOString();
         $this->loadRandomMovie();
@@ -91,11 +81,11 @@ class RoomMatch extends Component
 
     public function vote(string $decision): void
     {
-        if (! in_array($decision, ['up', 'down'], true)) {
+        if (!in_array($decision, ['up', 'down'], true)) {
             return;
         }
 
-        if (! $this->currentMovieId) {
+        if (!$this->currentMovieId) {
             return;
         }
 
@@ -111,9 +101,9 @@ class RoomMatch extends Component
         );
 
         $this->lastChoice = $decision;
-        $messageOptions = config('room.last_choice_messages.'.$decision, []);
+        $messageOptions = config('room.last_choice_messages.' . $decision, []);
         $this->lastChoiceMessage = $messageOptions !== []
-            ? \Illuminate\Support\Arr::random($messageOptions)
+            ? Arr::random($messageOptions)
             : null;
 
         $this->checkForMatch($movieId);
@@ -135,12 +125,12 @@ class RoomMatch extends Component
 
     public function endRoomWithMatch(?int $movieId = null): void
     {
-        if (! $this->isHost) {
+        if (!$this->isHost) {
             return;
         }
 
         $selectedMovieId = $movieId ?? $this->matchedMovieId;
-        if (! $selectedMovieId) {
+        if (!$selectedMovieId) {
             return;
         }
 
@@ -148,7 +138,7 @@ class RoomMatch extends Component
             ->where('movie_id', $selectedMovieId)
             ->exists();
 
-        if (! $isMatchedMovie && $selectedMovieId !== $this->matchedMovieId) {
+        if (!$isMatchedMovie && $selectedMovieId !== $this->matchedMovieId) {
             return;
         }
 
@@ -177,7 +167,7 @@ class RoomMatch extends Component
         $room = Room::select('id', 'started_at', 'matched_movie_id', 'continue_hunting_requested_at', 'ended_at')
             ->find($this->roomId);
 
-        if (! $room) {
+        if (!$room) {
             $this->redirectRoute('home');
 
             return;
@@ -193,13 +183,13 @@ class RoomMatch extends Component
             ->where('id', $this->participantId)
             ->first();
 
-        if (! $participant || $participant->kicked_at !== null) {
+        if (!$participant || $participant->kicked_at !== null) {
             $this->redirectRoute('home');
 
             return;
         }
 
-        if (! $room->started_at) {
+        if (!$room->started_at) {
             $this->redirectRoute('rooms.show', ['code' => $this->roomCode]);
 
             return;
@@ -225,7 +215,7 @@ class RoomMatch extends Component
         }
 
         // Close modal if match was cleared
-        if ($this->showMatchModal && ! $room->matched_movie_id) {
+        if ($this->showMatchModal && !$room->matched_movie_id) {
             $this->showMatchModal = false;
             $this->matchedMovieId = null;
         }
@@ -233,12 +223,12 @@ class RoomMatch extends Component
 
     public function disbandRoom(): void
     {
-        if (! $this->isHost) {
+        if (!$this->isHost) {
             return;
         }
 
         $room = Room::find($this->roomId);
-        if (! $room) {
+        if (!$room) {
             $this->redirectRoute('home');
 
             return;
@@ -288,7 +278,7 @@ class RoomMatch extends Component
             'matchedMovie' => $matchedMovie,
             'matchedMovies' => $matchedMovies,
             'voteStatsByParticipant' => $voteStatsByParticipant,
-        ])->layout('components.layouts.marketing', ['title' => 'Matching in '.$this->roomCode]);
+        ])->layout('components.layouts.marketing', ['title' => 'Matching in ' . $this->roomCode]);
     }
 
     protected function loadRandomMovie(): void

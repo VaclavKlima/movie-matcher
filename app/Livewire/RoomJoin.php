@@ -26,26 +26,14 @@ class RoomJoin extends Component
     {
         $room = Room::where('code', $code)->firstOrFail();
         $playerCookieId = PlayerCookie::getOrCreate();
+
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
             return;
         }
-        $existingParticipant = RoomParticipant::where('room_id', $room->id)
-            ->where('player_cookie_id', $playerCookieId)
-            ->first();
 
-        if (! $existingParticipant) {
-            $existingParticipant = RoomParticipant::where('room_id', $room->id)
-                ->where('session_id', Session::getId())
-                ->first();
-
-            if ($existingParticipant && ! $existingParticipant->player_cookie_id) {
-                $existingParticipant->update(['player_cookie_id' => $playerCookieId]);
-            }
-        }
-
-        if ($existingParticipant) {
+        if (RoomParticipant::query()->where('room_id', $room->id)->where('session_id', Session::getId())->exists()) {
             $this->redirectRoute('rooms.show', ['code' => $room->code]);
 
             return;
@@ -55,10 +43,20 @@ class RoomJoin extends Component
             abort(403, 'This room is already matching.');
         }
 
+        $existingParticipant = RoomParticipant::query()
+            ->where('player_cookie_id', $playerCookieId)
+            ->orWhere('session_id', Session::getId())
+            ->first();
+
         $this->roomCode = $room->code;
         $this->avatars = $this->avatarOptions();
         $this->name = $this->randomDefaultName();
         $this->avatar = $this->randomDefaultAvatar();
+
+        if ($existingParticipant) {
+            $this->name = $existingParticipant->name;
+            $this->avatar = $existingParticipant->avatar;
+        }
     }
 
     public function confirmJoin(): void
@@ -74,33 +72,21 @@ class RoomJoin extends Component
 
         $room = Room::where('code', $this->roomCode)->firstOrFail();
         $playerCookieId = PlayerCookie::getOrCreate();
+
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
-
-            return;
-        }
-        $existingParticipant = RoomParticipant::where('room_id', $room->id)
-            ->where('player_cookie_id', $playerCookieId)
-            ->first();
-
-        if (! $existingParticipant) {
-            $existingParticipant = RoomParticipant::where('room_id', $room->id)
-                ->where('session_id', Session::getId())
-                ->first();
-
-            if ($existingParticipant && ! $existingParticipant->player_cookie_id) {
-                $existingParticipant->update(['player_cookie_id' => $playerCookieId]);
-            }
-        }
-
-        if ($existingParticipant) {
-            $this->redirectRoute('rooms.show', ['code' => $room->code]);
 
             return;
         }
 
         if ($room->started_at) {
             abort(403, 'This room is already matching.');
+        }
+
+        if (RoomParticipant::query()->where('room_id', $room->id)->where('session_id', Session::getId())->exists()) {
+            $this->redirectRoute('rooms.show', ['code' => $room->code]);
+
+            return;
         }
 
         $isHost = Session::get('host_room_code') === $room->code;

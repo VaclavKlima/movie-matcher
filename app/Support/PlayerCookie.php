@@ -11,6 +11,7 @@ class PlayerCookie
     {
         $cookieName = config('room.player_cookie_name', 'moviematcher_player');
         $existing = request()->cookie($cookieName);
+
         if (is_string($existing) && $existing !== '') {
             return $existing;
         }

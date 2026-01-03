@@ -7,7 +7,7 @@
             [x-cloak] { display: none !important; }
         </style>
     </head>
-    <body class="relative min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 pb-20 font-['Space_Grotesk'] text-slate-100 antialiased">
+    <body class="relative flex min-h-screen flex-col bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 font-['Space_Grotesk'] text-slate-100 antialiased">
         <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
             <div class="absolute -right-32 top-20 h-64 w-64 animate-film-reel rounded-full border-8 border-amber-400/20 opacity-20"></div>
             <div class="absolute -left-32 bottom-40 h-96 w-96 animate-film-reel rounded-full border-8 border-purple-400/20 opacity-10" style="animation-delay: -10s;"></div>
@@ -27,11 +27,11 @@
             </div>
         </div>
 
-        <div class="relative z-10">
+        <div class="relative z-10 flex-1">
             {{ $slot }}
         </div>
 
-    <footer class="absolute inset-x-0 bottom-4 z-10 px-6 py-4 text-center text-xs text-amber-200/70">
+    <footer class="relative z-10 mt-auto px-4 pb-6 pt-8 text-center text-xs text-amber-200/70 sm:px-6">
         <span class="mx-auto inline-flex items-center gap-2 rounded-full bg-slate-950/40 px-3 py-1.5 text-purple-200/80 shadow-sm shadow-amber-500/10 backdrop-blur">
             <span class="font-semibold text-amber-200/80">{{ config('app.name') }}</span>
             <span class="opacity-70">•</span>

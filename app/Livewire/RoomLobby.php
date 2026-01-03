@@ -38,7 +38,7 @@ class RoomLobby extends Component
     public function mount(?string $code = null): void
     {
         $this->avatars = config('room.avatars', []);
-        if (! is_array($this->avatars) || $this->avatars === []) {
+        if ($this->avatars === []) {
             $this->avatars = [
                 ['id' => 'popcorn', 'label' => 'Popcorn', 'bg' => 'bg-amber-100', 'text' => 'text-amber-700', 'ring' => 'ring-amber-400/40'],
             ];
@@ -57,28 +57,20 @@ class RoomLobby extends Component
         }
 
         $room = Room::where('code', $code)->firstOrFail();
-        $playerCookieId = PlayerCookie::getOrCreate();
+
         if ($room->ended_at) {
             $this->redirectRoute('rooms.stats', ['code' => $room->code]);
 
             return;
         }
+
         $isHost = Session::get('host_room_code') === $room->code;
+
         $existingParticipant = RoomParticipant::where('room_id', $room->id)
-            ->where('player_cookie_id', $playerCookieId)
+            ->where('session_id', Session::getId())
             ->first();
 
-        if (! $existingParticipant) {
-            $existingParticipant = RoomParticipant::where('room_id', $room->id)
-                ->where('session_id', Session::getId())
-                ->first();
-
-            if ($existingParticipant && ! $existingParticipant->player_cookie_id) {
-                $existingParticipant->update(['player_cookie_id' => $playerCookieId]);
-            }
-        }
-
-        if (! $existingParticipant) {
+        if (!$existingParticipant) {
             if ($room->started_at) {
                 abort(403, 'This room is already matching.');
             }
@@ -115,8 +107,6 @@ class RoomLobby extends Component
 
         if ($room->started_at && ! $this->isKicked) {
             $this->redirectRoute('rooms.match', ['code' => $room->code]);
-
-            return;
         }
     }
 
