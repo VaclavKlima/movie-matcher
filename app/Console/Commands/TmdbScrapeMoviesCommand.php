@@ -39,9 +39,10 @@ class TmdbScrapeMoviesCommand extends Command
 
             $this->info("HTTP Status: {$response->status()}");
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $this->error("Failed to download file. HTTP Status: {$response->status()}");
                 $this->error("Response: {$response->body()}");
+
                 return;
             }
 
@@ -64,7 +65,7 @@ class TmdbScrapeMoviesCommand extends Command
                 $chunkCount++;
 
                 if ($chunkCount % 10 === 0) {
-                    $this->info("Downloaded: " . round($bytesDownloaded / 1024 / 1024, 2) . " MB ({$movies->count()} movies parsed)");
+                    $this->info('Downloaded: '.round($bytesDownloaded / 1024 / 1024, 2)." MB ({$movies->count()} movies parsed)");
                 }
 
                 $decoded = inflate_add(
@@ -74,6 +75,7 @@ class TmdbScrapeMoviesCommand extends Command
                 );
                 if ($decoded === false) {
                     $this->error('Failed to decode TMDB export stream.');
+
                     return;
                 }
 
@@ -104,7 +106,8 @@ class TmdbScrapeMoviesCommand extends Command
         } catch (\Exception $e) {
             $this->error('Error downloading or processing TMDB export:');
             $this->error($e->getMessage());
-            $this->error('Stack trace: ' . $e->getTraceAsString());
+            $this->error('Stack trace: '.$e->getTraceAsString());
+
             return;
         }
 

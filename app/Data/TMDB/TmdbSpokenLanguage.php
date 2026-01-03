@@ -10,6 +10,5 @@ class TmdbSpokenLanguage extends Data
         public string $english_name,
         public string $iso_639_1,
         public string $name,
-    ) {
-    }
+    ) {}
 }

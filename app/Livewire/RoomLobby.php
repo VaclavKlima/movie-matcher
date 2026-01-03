@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Room;
 use App\Models\RoomParticipant;
-use App\Support\PlayerCookie;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
@@ -70,7 +69,7 @@ class RoomLobby extends Component
             ->where('session_id', Session::getId())
             ->first();
 
-        if (!$existingParticipant) {
+        if (! $existingParticipant) {
             if ($room->started_at) {
                 abort(403, 'This room is already matching.');
             }

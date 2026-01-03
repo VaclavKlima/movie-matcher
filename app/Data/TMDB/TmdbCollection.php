@@ -11,6 +11,5 @@ class TmdbCollection extends Data
         public string $name,
         public ?string $poster_path,
         public ?string $backdrop_path,
-    ) {
-    }
+    ) {}
 }

@@ -11,6 +11,5 @@ class TmdbProductionCompany extends Data
         public ?string $logo_path,
         public string $name,
         public string $origin_country,
-    ) {
-    }
+    ) {}
 }
