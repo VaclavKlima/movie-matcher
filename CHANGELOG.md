@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.0.4](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.3...moviematcher-v0.0.4) (2026-01-03)
+
+
+### Features
+
+* **docker:** add APP_URL environment variable to docker-compose ([331574d](https://github.com/VaclavKlima/movie-matcher/commit/331574dd12e3c222b73ef8bbe61b082e6041caca))
+* **docker:** add NIGHTWATCH_TOKEN to environment variables in docker-compose ([951358c](https://github.com/VaclavKlima/movie-matcher/commit/951358c7fb8488dd15568d131273e780c21caa84))
+* **errors:** add custom error pages with styled layouts for 403, 404, 419, 500, and 503 ([13cae25](https://github.com/VaclavKlima/movie-matcher/commit/13cae2575ed6822650e5e33b8991e69e2fc75217))
+* **logging:** add Nightwatch logging driver and update environment variables ([48ffc51](https://github.com/VaclavKlima/movie-matcher/commit/48ffc5157508ea2c28aa7247d5bb89c8b8d5888c))
+* **movies:** integrate TMDB API and replace CSFD-based scraping logic ([a9d893b](https://github.com/VaclavKlima/movie-matcher/commit/a9d893b494cc5117d3c365b533346dfea8a8b44f))
+* **nightwatch:** add Laravel Nightwatch integration with necessary configs ([f6e73f7](https://github.com/VaclavKlima/movie-matcher/commit/f6e73f753ef221affd1cac67924627d3f3071a30))
+* **providers:** add NightwatchServiceProvider with job rejection logic ([280871e](https://github.com/VaclavKlima/movie-matcher/commit/280871eae4ab40d17f0bd22d0e404e8bb1071e30))
+* **telescope:** integrate Laravel Telescope for application monitoring and tracking ([6024057](https://github.com/VaclavKlima/movie-matcher/commit/60240570782ad41219e0481713285199fc6d9059))
+* **tmdb:** add TMDB integration and related configurations ([c886324](https://github.com/VaclavKlima/movie-matcher/commit/c886324ee1bf1e2fe43fd49b670b65e8d3985d8e))
+
+
+### Fixes
+
+* **tmdb:** handle incomplete downloads and add stream decoding error check ([456e019](https://github.com/VaclavKlima/movie-matcher/commit/456e01969b37b49f21a69a91b21c33923704396c))
+* **tmdb:** improve export download logging and handle stream exceptions ([1a87011](https://github.com/VaclavKlima/movie-matcher/commit/1a870111d6b898a9cb886d693c4a54728babae26))
+* **tmdb:** pad single-digit month/day in export URL and log URL for debugging ([efa6107](https://github.com/VaclavKlima/movie-matcher/commit/efa610728df204324956132fec6358bdfad88065))
+* **tmdb:** remove redundant exception throw in HTTP request ([a7c07d7](https://github.com/VaclavKlima/movie-matcher/commit/a7c07d7af3f0b62fcf74f526544c662ecda4d34d))
+
+
+### Refactors
+
+* **docker:** reformat docker-compose.yml for improved readability and maintainability ([7e27f86](https://github.com/VaclavKlima/movie-matcher/commit/7e27f869b1875d9671a915f279fa6d7d103132d8))
+* **docker:** remove unused zlib extension from Dockerfile ([18181f7](https://github.com/VaclavKlima/movie-matcher/commit/18181f7d2d3356d9f9b34e315bdc03ad111fa9e5))
+* **footer:** simplify footer layout structure and remove conditional admin check ([2dab34e](https://github.com/VaclavKlima/movie-matcher/commit/2dab34ec31fb16d6534caa176d8cdba5abe43f8a))
+* **stats:** update non-host stats handling with DataCollection ([be3f53a](https://github.com/VaclavKlima/movie-matcher/commit/be3f53af48a94257f3d54b6d97d221062be58e57))
+* **telescope:** remove Laravel Telescope integration and related configurations ([1c76d92](https://github.com/VaclavKlima/movie-matcher/commit/1c76d92af477e3d3f510f0239c9e78d46b855e9e))
+* **tmdb:** remove file storage dependency and process movie ids in memory ([84045a4](https://github.com/VaclavKlima/movie-matcher/commit/84045a4bb250aa402aafd763b913648956a65eb9))
+* **tmdb:** remove progress bar and unused download safety checks ([47676a5](https://github.com/VaclavKlima/movie-matcher/commit/47676a5526d6cae55c6e548ae998f45e2e9cb2e4))
+
 ## [0.0.3](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.2...moviematcher-v0.0.3) (2026-01-02)
 
 
