@@ -32,15 +32,10 @@ class TmdbScrapeMoviesCommand extends Command
             ->get($url)
             ->throw();
 
-        $contentLength = (int) $response->header('Content-Length', 0);
-        $progressBar = $this->output->createProgressBar($contentLength ?: 0);
-        $progressBar->start();
-
         $body = $response->toPsrResponse()->getBody();
         $inflate = inflate_init(ZLIB_ENCODING_GZIP);
         $movies = collect();
         $buffer = '';
-        $downloaded = 0;
 
         while (! $body->eof()) {
             $chunk = $body->read(1024 * 1024);
@@ -72,18 +67,8 @@ class TmdbScrapeMoviesCommand extends Command
                     $movies->push($movie);
                 }
             }
-
-            $downloaded += strlen($chunk);
-            $progressBar->advance($contentLength > 0 ? strlen($chunk) : 1);
         }
 
-        $progressBar->finish();
-        $this->newLine();
-        if ($contentLength > 0 && $downloaded < $contentLength) {
-            $this->error('Download ended early before receiving the full file.');
-
-            return;
-        }
         $this->info('Download complete.');
         $line = trim($buffer);
         if ($line !== '') {
