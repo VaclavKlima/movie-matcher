@@ -6,7 +6,6 @@ use App\Data\TMDB\IdMovie;
 use App\Jobs\TMDB\FetchMovieJob;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 class TmdbScrapeMoviesCommand extends Command
 {
@@ -26,24 +25,20 @@ class TmdbScrapeMoviesCommand extends Command
             $date->month, $date->day, $date->year,
         ], $url);
 
+        $this->info('Downloading TMDB movie ids export...');
         $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
             ->withOptions(['stream' => true])
             ->get($url)
             ->throw();
 
-        $filePath = Storage::disk('local')->path('imdb_movie_ids.json');
         $contentLength = (int) $response->header('Content-Length', 0);
         $progressBar = $this->output->createProgressBar($contentLength ?: 0);
         $progressBar->start();
 
         $body = $response->toPsrResponse()->getBody();
         $inflate = inflate_init(ZLIB_ENCODING_GZIP);
-        $handle = fopen($filePath, 'wb');
-        if ($handle === false) {
-            $this->error('Unable to write movie ids to storage.');
-
-            return;
-        }
+        $movies = collect();
+        $buffer = '';
 
         while (! $body->eof()) {
             $chunk = $body->read(1024 * 1024);
@@ -57,36 +52,33 @@ class TmdbScrapeMoviesCommand extends Command
                 $body->eof() ? ZLIB_FINISH : ZLIB_SYNC_FLUSH
             );
 
-            fwrite($handle, $decoded);
+            $buffer .= $decoded;
+            while (($newlinePos = strpos($buffer, "\n")) !== false) {
+                $line = trim(substr($buffer, 0, $newlinePos));
+                $buffer = substr($buffer, $newlinePos + 1);
+                if ($line === '') {
+                    continue;
+                }
+
+                $movie = json_decode($line, true);
+                if (is_array($movie)) {
+                    $movies->push($movie);
+                }
+            }
+
             $progressBar->advance($contentLength > 0 ? strlen($chunk) : 1);
         }
 
-        fclose($handle);
         $progressBar->finish();
         $this->newLine();
-        $this->info("Saved TMDB movie ids to {$filePath}");
-
-        $movies = collect();
-        $handle = fopen($filePath, 'rb');
-        if ($handle === false) {
-            $this->error('Unable to read movie ids from storage.');
-
-            return;
-        }
-
-        while (($line = fgets($handle)) !== false) {
-            $line = trim($line);
-            if ($line === '') {
-                continue;
-            }
-
+        $line = trim($buffer);
+        if ($line !== '') {
             $movie = json_decode($line, true);
             if (is_array($movie)) {
                 $movies->push($movie);
             }
         }
-
-        fclose($handle);
+        $this->info('Loaded movie ids into memory.');
 
         $minPopularity = (float) config('tmdb.min_popularity', 0.5);
 
@@ -96,6 +88,7 @@ class TmdbScrapeMoviesCommand extends Command
             ->values();
 
         $this->info("Loaded {$movies->count()} movies sorted by popularity.");
+        $this->info('Dispatching jobs for movie details...');
 
         $progressBar = $this->output->createProgressBar($movies->count());
         $progressBar->start();
