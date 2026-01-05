@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.5](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.4...moviematcher-v0.0.5) (2026-01-05)
+
+
+### Features
+
+* **config:** centralize moviematcher constants in config file and update usage ([e2e94e8](https://github.com/VaclavKlima/movie-matcher/commit/e2e94e8e7741542322c2dd666a907877d2103a7c))
+* **favicon:** add new SVG favicon and update head partial for icons ([4463805](https://github.com/VaclavKlima/movie-matcher/commit/4463805e255c43a0d399ed33b68d151981edbf6a))
+* **middleware:** add PlayerIdentificationCookieMiddleware and refactor participant handling ([49a6289](https://github.com/VaclavKlima/movie-matcher/commit/49a628948b88c547b52371ef1e1646021bed6b67))
+
 ## [0.0.4](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.3...moviematcher-v0.0.4) (2026-01-03)
 
 
