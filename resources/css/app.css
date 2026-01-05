@@ -261,21 +261,21 @@ select:focus[data-flux-control] {
 }
 
 /* Ticket stub perforation */
-.ticket-stub {
-    position: relative;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        transparent 2%,
-        currentColor 2%,
-        currentColor 4%,
-        transparent 4%,
-        transparent 100%
-    );
-    background-size: 8px 100%;
-    background-repeat: repeat-x;
-    padding-left: 12px;
-}
+/*.ticket-stub {*/
+/*    position: relative;*/
+/*    background: linear-gradient(*/
+/*        90deg,*/
+/*        transparent 0%,*/
+/*        transparent 2%,*/
+/*        currentColor 2%,*/
+/*        currentColor 4%,*/
+/*        transparent 4%,*/
+/*        transparent 100%*/
+/*    );*/
+/*    background-size: 8px 100%;*/
+/*    background-repeat: repeat-x;*/
+/*    padding-left: 12px;*/
+/*}*/
 
 /* Cinema seat styling */
 .cinema-seat {

@@ -31,15 +31,22 @@ class Movie extends Model
     public function toSearchableArray(): array
     {
         $voteAverage = $this->vote_average !== null ? (float) $this->vote_average : null;
+        $voteCount = $this->vote_count !== null ? (float) $this->vote_count : null;
         $popularity = $this->popularity !== null ? (float) $this->popularity : null;
 
-        $ratingScoreMax = 5.0;
-        $popularityScoreMax = 5.0;
-        $popularityLogMax = 3.0;
+        $ratingScoreMax = config('moviematcher.scoring.rating_max');
+        $popularityScoreMax = config('moviematcher.scoring.popularity_max');
+        $popularityLogMax = config('moviematcher.scoring.popularity_log_max');
+        $voteCountThreshold = config('moviematcher.scoring.vote_count_threshold');
+        $voteAverageMean = config('moviematcher.scoring.vote_average_mean');
 
-        $ratingScore = $voteAverage === null
-            ? 0.0
-            : $ratingScoreMax * ($voteAverage / 10.0);
+        // Apply Bayesian weighted rating: (v/(v+m)) * R + (m/(v+m)) * C
+        $weightedRating = ($voteAverage === null || $voteCount === null)
+            ? $voteAverageMean
+            : ($voteCount / ($voteCount + $voteCountThreshold)) * $voteAverage +
+              ($voteCountThreshold / ($voteCount + $voteCountThreshold)) * $voteAverageMean;
+
+        $ratingScore = $ratingScoreMax * ($weightedRating / 10.0);
 
         $popularityScore = $popularity === null
             ? 0.0

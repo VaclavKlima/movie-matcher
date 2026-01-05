@@ -10,62 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 final class SuggestMovie
 {
-    private const float ROOM_LIKE_WEIGHT = 0.30;
-
-    private const float GENRE_SCORE_WEIGHT = 0.40;
-
-    private const float ACTOR_SCORE_WEIGHT = 0.40;
-
-    private const float YEAR_SCORE_WEIGHT = 0.20;
-
-    private const float YEAR_SCORE_RANGE = 40.0;
-
-    private const float YEAR_SCORE_MAX = 5.0;
-
-    private const float SELF_TAG_VOTE_WEIGHT = 1.8;
-
-    private const float OTHER_TAG_VOTE_WEIGHT = 0.9;
-
-    private const float NOVELTY_BONUS_MAX = 1.25;
-
-    private const float GENRE_DOMINANCE_THRESHOLD = 0.60;
-
-    private const float GENRE_DOMINANCE_MULTIPLIER = 0.70;
-
-    private const float ACTOR_DOMINANCE_THRESHOLD = 0.60;
-
-    private const float ACTOR_DOMINANCE_MULTIPLIER = 0.70;
-
-    private const int TOP_GENRE_LIMIT = 5;
-
-    private const int TOP_ACTOR_LIMIT = 7;
-
-    /**
-     * How many results we ask Meilisearch for (before DB exclusions).
-     * This should be > CANDIDATE_SAMPLE_SIZE to survive exclusions.
-     */
-    private const int SEARCH_FETCH_SIZE = 2500;
-
-    /**
-     * How many candidates we score in MySQL after exclusions.
-     */
-    private const int CANDIDATE_SAMPLE_SIZE = 1000;
-
-    private const int CANDIDATE_LIMIT = 50;
-
-    private const float EXPLORATION_PROBABILITY = 0.15;
-
-    private const float RATING_SCORE_WEIGHT = 0.20;
-
-    private const float POPULARITY_SCORE_WEIGHT = 0.40;
-
-    private const float RATING_SCORE_MAX = 5.0;
-
-    private const float POPULARITY_SCORE_MAX = 5.0;
-
-    private const float POPULARITY_LOG_MAX = 3.0;
-
-    private const int TASTE_CACHE_TTL_SECONDS = 60;
 
     public function execute(int $roomId, int $participantId): ?int
     {
@@ -85,16 +29,16 @@ final class SuggestMovie
 
         $tasteProfile = Cache::tags([$roomCacheTag])->remember(
             $this->tasteCacheKey($roomId, $participantId),
-            self::TASTE_CACHE_TTL_SECONDS,
+            config('moviematcher.taste_cache_ttl_seconds'),
             fn () => $this->buildTasteProfile($roomId, $participantId)
         );
 
-        $isExploration = (mt_rand() / mt_getrandmax()) < self::EXPLORATION_PROBABILITY;
+        $isExploration = (mt_rand() / mt_getrandmax()) < config('moviematcher.exploration_probability');
 
         $candidateMovieIds = $this->fetchCandidateMovieIdsFromMeilisearch(
             tasteProfile: $tasteProfile,
             isExploration: $isExploration,
-            limit: self::SEARCH_FETCH_SIZE
+            limit: config('moviematcher.limits.search_fetch_size')
         );
 
         if (empty($candidateMovieIds)) {
@@ -113,10 +57,10 @@ final class SuggestMovie
             candidateMovieIds: $candidateMovieIds,
         );
 
-        $candidates = $candidateQuery->limit(self::CANDIDATE_LIMIT)->get();
+        $candidates = $candidateQuery->limit(config('moviematcher.limits.candidate_limit'))->get();
 
         if ($candidates->isEmpty()) {
-            $fallbackMovieIds = $this->fetchFallbackMovieIdsFromMeilisearch(self::SEARCH_FETCH_SIZE);
+            $fallbackMovieIds = $this->fetchFallbackMovieIdsFromMeilisearch(config('moviematcher.limits.search_fetch_size'));
 
             if (empty($fallbackMovieIds)) {
                 return [
@@ -126,7 +70,7 @@ final class SuggestMovie
             }
 
             $fallbackQuery = $this->buildFallbackQuery($roomId, $participantId, $fallbackMovieIds);
-            $fallbackCandidates = $fallbackQuery->limit(self::CANDIDATE_LIMIT)->get();
+            $fallbackCandidates = $fallbackQuery->limit(config('moviematcher.limits.candidate_limit'))->get();
 
             if ($fallbackCandidates->isEmpty()) {
                 return [
@@ -213,31 +157,31 @@ final class SuggestMovie
             pivotTagColumnName: 'actor_id',
         );
 
-        $topGenreIds = $this->topPositiveTagIds($genreScoresByGenreId, self::TOP_GENRE_LIMIT);
-        $topActorIds = $this->topPositiveTagIds($actorScoresByActorId, self::TOP_ACTOR_LIMIT);
+        $topGenreIds = $this->topPositiveTagIds($genreScoresByGenreId, config('moviematcher.limits.top_genres'));
+        $topActorIds = $this->topPositiveTagIds($actorScoresByActorId, config('moviematcher.limits.top_actors'));
 
         $genreScoreMultiplier = $this->dominanceMultiplier(
             positiveScoresById: $genreScoresByGenreId,
-            dominanceThreshold: self::GENRE_DOMINANCE_THRESHOLD,
-            dominanceMultiplier: self::GENRE_DOMINANCE_MULTIPLIER,
+            dominanceThreshold: config('moviematcher.dominance.genre_threshold'),
+            dominanceMultiplier: config('moviematcher.dominance.genre_multiplier'),
         );
 
         $actorScoreMultiplier = $this->dominanceMultiplier(
             positiveScoresById: $actorScoresByActorId,
-            dominanceThreshold: self::ACTOR_DOMINANCE_THRESHOLD,
-            dominanceMultiplier: self::ACTOR_DOMINANCE_MULTIPLIER,
+            dominanceThreshold: config('moviematcher.dominance.actor_threshold'),
+            dominanceMultiplier: config('moviematcher.dominance.actor_multiplier'),
         );
 
         $weights = [
-            'room_likes' => self::ROOM_LIKE_WEIGHT,
+            'room_likes' => config('moviematcher.weights.room_likes'),
 
-            'genre_score' => self::GENRE_SCORE_WEIGHT * $genreScoreMultiplier,
-            'actor_score' => self::ACTOR_SCORE_WEIGHT * $actorScoreMultiplier,
+            'genre_score' => config('moviematcher.weights.genre_score') * $genreScoreMultiplier,
+            'actor_score' => config('moviematcher.weights.actor_score') * $actorScoreMultiplier,
 
-            'year_score' => self::YEAR_SCORE_WEIGHT,
+            'year_score' => config('moviematcher.weights.year_score'),
 
-            'rating_score' => self::RATING_SCORE_WEIGHT,
-            'popularity_score' => self::POPULARITY_SCORE_WEIGHT,
+            'rating_score' => config('moviematcher.weights.rating_score'),
+            'popularity_score' => config('moviematcher.weights.popularity_score'),
         ];
 
         return [
@@ -276,8 +220,8 @@ final class SuggestMovie
                     end
                 ) as score",
                 [
-                    $participantId, self::SELF_TAG_VOTE_WEIGHT, self::OTHER_TAG_VOTE_WEIGHT,
-                    $participantId, self::SELF_TAG_VOTE_WEIGHT, self::OTHER_TAG_VOTE_WEIGHT,
+                    $participantId, config('moviematcher.tag_vote_weights.self'), config('moviematcher.tag_vote_weights.other'),
+                    $participantId, config('moviematcher.tag_vote_weights.self'), config('moviematcher.tag_vote_weights.other'),
                 ]
             )
             ->groupBy("{$pivotTableName}.{$pivotTagColumnName}");
@@ -358,8 +302,8 @@ final class SuggestMovie
             }
 
             if ($hasYearTaste) {
-                $yearMinimum = ((int) $averageLikedYear) - (int) self::YEAR_SCORE_RANGE;
-                $yearMaximum = ((int) $averageLikedYear) + (int) self::YEAR_SCORE_RANGE;
+                $yearMinimum = ((int) $averageLikedYear) - (int) config('moviematcher.scoring.year_range');
+                $yearMaximum = ((int) $averageLikedYear) + (int) config('moviematcher.scoring.year_range');
 
                 // Keep null years out of the year range clause
                 $filterClauses[] = "(year >= {$yearMinimum} AND year <= {$yearMaximum})";
@@ -430,17 +374,28 @@ final class SuggestMovie
 
         $weights = $tasteProfile['weights'];
 
-        // Rating score based on TMDB vote_average (0..10)
-        $ratingScoreExpression =
-            '(case when movies.vote_average is null then 0 else ('.
-            self::RATING_SCORE_MAX.' * (movies.vote_average / 10.0)) end)';
+        // Rating score based on TMDB vote_average (0..10) weighted by vote_count (Bayesian average)
+        // Formula: (v/(v+m)) * R + (m/(v+m)) * C
+        // where v = vote_count, m = threshold, R = vote_average, C = mean
+        $ratingScoreMax = config('moviematcher.scoring.rating_max');
+        $voteCountThreshold = config('moviematcher.scoring.vote_count_threshold');
+        $voteAverageMean = config('moviematcher.scoring.vote_average_mean');
+
+        $weightedRatingExpression =
+            '(case when movies.vote_average is null or movies.vote_count is null then '.$voteAverageMean.' '.
+            'else (movies.vote_count / (movies.vote_count + '.$voteCountThreshold.')) * movies.vote_average + '.
+            '('.$voteCountThreshold.' / (movies.vote_count + '.$voteCountThreshold.')) * '.$voteAverageMean.' end)';
+
+        $ratingScoreExpression = '(('.$weightedRatingExpression.' / 10.0) * '.$ratingScoreMax.')';
 
         // Popularity score based on TMDB popularity (log scaled)
         // ✅ FIXED: removed the extra ")" after the least(...) expression
+        $popularityScoreMax = config('moviematcher.scoring.popularity_max');
+        $popularityLogMax = config('moviematcher.scoring.popularity_log_max');
         $popularityScoreExpression =
             '(case when movies.popularity is null then 0 else least('.
-            self::POPULARITY_SCORE_MAX.', (log10(movies.popularity + 1) / '.
-            self::POPULARITY_LOG_MAX.') * '.self::POPULARITY_SCORE_MAX.
+            $popularityScoreMax.', (log10(movies.popularity + 1) / '.
+            $popularityLogMax.') * '.$popularityScoreMax.
             ') end)';
 
         /**
@@ -450,15 +405,17 @@ final class SuggestMovie
         $yearScoreExpression = '0';
         if ($hasYearTaste) {
             $averageLikedYearInteger = (int) $averageLikedYear;
+            $yearScoreRange = config('moviematcher.scoring.year_range');
+            $yearScoreMax = config('moviematcher.scoring.year_max');
 
             $yearDeltaExpression =
-                "(case when abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) < ".self::YEAR_SCORE_RANGE.' '.
-                "then abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) else ".self::YEAR_SCORE_RANGE.' end)';
+                "(case when abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) < ".$yearScoreRange.' '.
+                "then abs(CAST(movies.year AS SIGNED) - {$averageLikedYearInteger}) else ".$yearScoreRange.' end)';
 
-            $yearNormalizedExpression = "(1.0 * {$yearDeltaExpression} / ".self::YEAR_SCORE_RANGE.')';
+            $yearNormalizedExpression = "(1.0 * {$yearDeltaExpression} / ".$yearScoreRange.')';
 
             $yearScoreExpression =
-                '('.self::YEAR_SCORE_MAX.' - (2 * '.self::YEAR_SCORE_MAX.") * {$yearNormalizedExpression} * {$yearNormalizedExpression})";
+                '('.$yearScoreMax.' - (2 * '.$yearScoreMax.") * {$yearNormalizedExpression} * {$yearNormalizedExpression})";
         }
 
         // Restrict to Meili candidates, then do room-specific exclusions in MySQL
@@ -518,8 +475,8 @@ final class SuggestMovie
                     }
 
                     if ($hasYearTaste) {
-                        $yearRangeMinimum = ((int) $averageLikedYear) - (int) self::YEAR_SCORE_RANGE;
-                        $yearRangeMaximum = ((int) $averageLikedYear) + (int) self::YEAR_SCORE_RANGE;
+                        $yearRangeMinimum = ((int) $averageLikedYear) - (int) config('moviematcher.scoring.year_range');
+                        $yearRangeMaximum = ((int) $averageLikedYear) + (int) config('moviematcher.scoring.year_range');
 
                         if ($hasAnyConstraint) {
                             $innerQuery->orWhereBetween('movies.year', [$yearRangeMinimum, $yearRangeMaximum]);
@@ -529,7 +486,7 @@ final class SuggestMovie
                     }
                 });
             })
-            ->limit(self::CANDIDATE_SAMPLE_SIZE);
+            ->limit(config('moviematcher.limits.candidate_sample_size'));
 
         $genreScoreBaseQuery = $this->buildScoreBaseQuery($tasteProfile['genre_scores_by_id']);
         $actorScoreBaseQuery = $this->buildScoreBaseQuery($tasteProfile['actor_scores_by_id']);
@@ -561,7 +518,8 @@ final class SuggestMovie
             $actorNoveltyExpression = 'coalesce(avg(greatest(0, actor_like_averages.avg_total - coalesce(actor_like_counts.total, 0))), 0)';
         }
 
-        $noveltyBonusExpression = '(least('.self::NOVELTY_BONUS_MAX.", ({$genreNoveltyExpression} + {$actorNoveltyExpression}) / 2))";
+        $noveltyBonusMax = config('moviematcher.scoring.novelty_bonus_max');
+        $noveltyBonusExpression = '(least('.$noveltyBonusMax.", ({$genreNoveltyExpression} + {$actorNoveltyExpression}) / 2))";
 
         $baseScoreExpression =
             '('.
@@ -631,8 +589,20 @@ final class SuggestMovie
 
     private function buildFallbackQuery(int $roomId, int $participantId, array $fallbackMovieIds)
     {
-        $ratingScoreExpression = '(case when movies.vote_average is null then 0 else ('.self::RATING_SCORE_MAX.' * (movies.vote_average / 10.0)) end)';
-        $popularityScoreExpression = '(case when movies.popularity is null then 0 else least('.self::POPULARITY_SCORE_MAX.', (log10(movies.popularity + 1) / '.self::POPULARITY_LOG_MAX.') * '.self::POPULARITY_SCORE_MAX.')) end)';
+        $ratingScoreMax = config('moviematcher.scoring.rating_max');
+        $popularityScoreMax = config('moviematcher.scoring.popularity_max');
+        $popularityLogMax = config('moviematcher.scoring.popularity_log_max');
+        $voteCountThreshold = config('moviematcher.scoring.vote_count_threshold');
+        $voteAverageMean = config('moviematcher.scoring.vote_average_mean');
+
+        // Apply Bayesian weighted rating
+        $weightedRatingExpression =
+            '(case when movies.vote_average is null or movies.vote_count is null then '.$voteAverageMean.' '.
+            'else (movies.vote_count / (movies.vote_count + '.$voteCountThreshold.')) * movies.vote_average + '.
+            '('.$voteCountThreshold.' / (movies.vote_count + '.$voteCountThreshold.')) * '.$voteAverageMean.' end)';
+
+        $ratingScoreExpression = '(('.$weightedRatingExpression.' / 10.0) * '.$ratingScoreMax.')';
+        $popularityScoreExpression = '(case when movies.popularity is null then 0 else least('.$popularityScoreMax.', (log10(movies.popularity + 1) / '.$popularityLogMax.') * '.$popularityScoreMax.')) end)';
         $popularityScoreExpression = "({$ratingScoreExpression} + {$popularityScoreExpression})";
 
         return Movie::query()
