@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 final class SuggestMovie
 {
-
     public function execute(int $roomId, int $participantId): ?int
     {
         $selection = $this->selectCandidate($roomId, $participantId);
