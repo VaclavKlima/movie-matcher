@@ -48,13 +48,16 @@ jobs:
           if [ ! -f .env ]; then cp .env.example .env; fi
           php artisan key:generate
 
+      - name: Run Rector
+        run: ./vendor/bin/rector
+
       - name: Run Pint
         run: ./vendor/bin/pint
 
       - name: Commit Pint changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: apply pint"
+          commit_message: "chore: apply rector and pint"
           commit_options: "--no-verify"
           file_pattern: |
             app/**/*.php
