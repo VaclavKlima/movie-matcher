@@ -421,7 +421,7 @@ final class SuggestMovie
         $sampleSetQuery = Movie::query()
             ->select('movies.id')
             ->whereIn('movies.id', array_values(array_map('intval', $candidateMovieIds)))
-            ->whereNotExists(function ($subquery) use ($roomId, $participantId) {
+            ->whereNotExists(function ($subquery) use ($roomId, $participantId): void {
                 // Exclude if THIS participant already voted this movie in this room
                 $subquery->selectRaw('1')
                     ->from('movie_votes as mv_participant')
@@ -429,7 +429,7 @@ final class SuggestMovie
                     ->where('mv_participant.room_id', $roomId)
                     ->where('mv_participant.room_participant_id', $participantId);
             })
-            ->whereNotExists(function ($subquery) use ($roomId) {
+            ->whereNotExists(function ($subquery) use ($roomId): void {
                 // Exclude if ANY down vote exists for this movie in this room
                 $subquery->selectRaw('1')
                     ->from('movie_votes as mv_down')
@@ -437,15 +437,15 @@ final class SuggestMovie
                     ->where('mv_down.room_id', $roomId)
                     ->where('mv_down.decision', 'down');
             })
-            ->when($hasTaste && ! $isExploration, function ($query) use ($hasGenreTaste, $hasActorTaste, $hasYearTaste, $topGenreIds, $topActorIds, $averageLikedYear) {
+            ->when($hasTaste && ! $isExploration, function ($query) use ($hasGenreTaste, $hasActorTaste, $hasYearTaste, $topGenreIds, $topActorIds, $averageLikedYear): void {
                 // Safety net: keep behavior aligned with the old query even if Meili filter settings change
-                $query->where(function ($innerQuery) use ($hasGenreTaste, $hasActorTaste, $hasYearTaste, $topGenreIds, $topActorIds, $averageLikedYear) {
+                $query->where(function ($innerQuery) use ($hasGenreTaste, $hasActorTaste, $hasYearTaste, $topGenreIds, $topActorIds, $averageLikedYear): void {
                     $hasAnyConstraint = false;
 
                     if ($hasGenreTaste) {
                         $hasAnyConstraint = true;
 
-                        $innerQuery->whereExists(function ($subquery) use ($topGenreIds) {
+                        $innerQuery->whereExists(function ($subquery) use ($topGenreIds): void {
                             $subquery->selectRaw('1')
                                 ->from('movie_genre')
                                 ->whereColumn('movie_genre.movie_id', 'movies.id')
@@ -455,7 +455,7 @@ final class SuggestMovie
 
                     if ($hasActorTaste) {
                         if ($hasAnyConstraint) {
-                            $innerQuery->orWhereExists(function ($subquery) use ($topActorIds) {
+                            $innerQuery->orWhereExists(function ($subquery) use ($topActorIds): void {
                                 $subquery->selectRaw('1')
                                     ->from('movie_actor')
                                     ->whereColumn('movie_actor.movie_id', 'movies.id')
@@ -464,7 +464,7 @@ final class SuggestMovie
                         } else {
                             $hasAnyConstraint = true;
 
-                            $innerQuery->whereExists(function ($subquery) use ($topActorIds) {
+                            $innerQuery->whereExists(function ($subquery) use ($topActorIds): void {
                                 $subquery->selectRaw('1')
                                     ->from('movie_actor')
                                     ->whereColumn('movie_actor.movie_id', 'movies.id')
@@ -531,10 +531,10 @@ final class SuggestMovie
             ')';
 
         $candidateQuery = Movie::query()
-            ->joinSub($sampleSetQuery, 'sample_set', function ($join) {
+            ->joinSub($sampleSetQuery, 'sample_set', function ($join): void {
                 $join->on('sample_set.id', '=', 'movies.id');
             })
-            ->leftJoin('movie_votes as room_likes', function ($join) use ($roomId, $participantId) {
+            ->leftJoin('movie_votes as room_likes', function ($join) use ($roomId, $participantId): void {
                 $join->on('room_likes.movie_id', '=', 'movies.id')
                     ->where('room_likes.room_id', $roomId)
                     ->where('room_likes.decision', 'up')
@@ -543,14 +543,14 @@ final class SuggestMovie
 
         if ($hasGenreTaste) {
             $candidateQuery
-                ->leftJoin('movie_genre as genre_match', function ($join) use ($topGenreIds) {
+                ->leftJoin('movie_genre as genre_match', function ($join) use ($topGenreIds): void {
                     $join->on('genre_match.movie_id', '=', 'movies.id')
                         ->whereIn('genre_match.genre_id', $topGenreIds);
                 })
-                ->leftJoinSub($genreScoreBaseQuery, 'genre_scores', function ($join) {
+                ->leftJoinSub($genreScoreBaseQuery, 'genre_scores', function ($join): void {
                     $join->on('genre_scores.tag_id', '=', 'genre_match.genre_id');
                 })
-                ->leftJoinSub($genreLikeCountsSubquery, 'genre_like_counts', function ($join) {
+                ->leftJoinSub($genreLikeCountsSubquery, 'genre_like_counts', function ($join): void {
                     $join->on('genre_like_counts.tag_id', '=', 'genre_match.genre_id');
                 })
                 ->crossJoinSub($genreLikeAverageSubquery, 'genre_like_averages');
@@ -558,14 +558,14 @@ final class SuggestMovie
 
         if ($hasActorTaste) {
             $candidateQuery
-                ->leftJoin('movie_actor as actor_match', function ($join) use ($topActorIds) {
+                ->leftJoin('movie_actor as actor_match', function ($join) use ($topActorIds): void {
                     $join->on('actor_match.movie_id', '=', 'movies.id')
                         ->whereIn('actor_match.actor_id', $topActorIds);
                 })
-                ->leftJoinSub($actorScoreBaseQuery, 'actor_scores', function ($join) {
+                ->leftJoinSub($actorScoreBaseQuery, 'actor_scores', function ($join): void {
                     $join->on('actor_scores.tag_id', '=', 'actor_match.actor_id');
                 })
-                ->leftJoinSub($actorLikeCountsSubquery, 'actor_like_counts', function ($join) {
+                ->leftJoinSub($actorLikeCountsSubquery, 'actor_like_counts', function ($join): void {
                     $join->on('actor_like_counts.tag_id', '=', 'actor_match.actor_id');
                 })
                 ->crossJoinSub($actorLikeAverageSubquery, 'actor_like_averages');
@@ -608,14 +608,14 @@ final class SuggestMovie
             ->select('movies.id')
             ->selectRaw($popularityScoreExpression.' as popularity_score')
             ->whereIn('movies.id', array_values(array_map('intval', $fallbackMovieIds)))
-            ->whereNotExists(function ($subquery) use ($roomId, $participantId) {
+            ->whereNotExists(function ($subquery) use ($roomId, $participantId): void {
                 $subquery->selectRaw('1')
                     ->from('movie_votes as mv_participant')
                     ->whereColumn('mv_participant.movie_id', 'movies.id')
                     ->where('mv_participant.room_id', $roomId)
                     ->where('mv_participant.room_participant_id', $participantId);
             })
-            ->whereNotExists(function ($subquery) use ($roomId) {
+            ->whereNotExists(function ($subquery) use ($roomId): void {
                 $subquery->selectRaw('1')
                     ->from('movie_votes as mv_down')
                     ->whereColumn('mv_down.movie_id', 'movies.id')
