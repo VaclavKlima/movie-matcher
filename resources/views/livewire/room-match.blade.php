@@ -78,7 +78,7 @@
                     {{-- Movie Card with fixed heights --}}
                     <div class="animate-card-slide mt-6 overflow-hidden rounded-2xl border-2 border-slate-700/50 bg-gradient-to-br from-slate-900 to-slate-800 shadow-xl" x-data="{ voted: false }">
                         {{-- Poster Section - Fixed Height --}}
-                        <div class="film-strip-border relative flex h-64 w-full items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 p-4 sm:h-80">
+                        <div class="film-strip-border relative flex h-56 w-full items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 p-3 sm:h-72">
                             @if ($movie->poster_url)
                                 <img
                                     src="{{ $movie->poster_url }}"
@@ -96,11 +96,11 @@
                         </div>
 
                         {{-- Movie Details - Fixed structure to prevent layout shift --}}
-                        <div class="p-4 space-y-4 sm:p-6">
+                        <div class="p-3 space-y-3 sm:p-6 sm:space-y-4">
                             {{-- Clapperboard Metadata --}}
-                            <div class="flex items-center gap-3 rounded-lg border border-amber-400/20 bg-slate-950/50 px-4 py-2">
+                            <div class="flex items-center gap-2 rounded-lg border border-amber-400/20 bg-slate-950/50 px-3 py-1.5">
                                 <span class="text-lg">🎬</span>
-                                <div class="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-300/90">
+                                <div class="flex flex-wrap items-center gap-2 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-amber-300/90 sm:text-xs">
                                     <span>{{ $movie->year }}</span>
                                     <span class="text-amber-400/50">•</span>
                                     <span>{{ $movie->duration }}</span>
@@ -110,20 +110,20 @@
                             </div>
 
                             {{-- Title --}}
-                            <h3 class="text-xl font-bold text-amber-50 drop-shadow-md sm:text-3xl">{{ $movie->name }}</h3>
+                            <h3 class="text-lg font-bold text-amber-50 drop-shadow-md sm:text-2xl">{{ $movie->name }}</h3>
 
                             {{-- Description - Fixed 4 lines --}}
-                            <div class="min-h-[4.5rem]">
-                                <p class="line-clamp-3 text-xs leading-relaxed text-purple-100/80 sm:text-sm">
+                            <div class="min-h-[3rem]">
+                                <p class="line-clamp-2 text-[0.7rem] leading-relaxed text-purple-100/80 sm:text-sm">
                                     {{ $movie->description ?: 'A cinematic experience awaits. No description needed for pure entertainment.' }}
                                 </p>
                             </div>
 
                             {{-- Genres as Cinema Tickets - Fixed min height --}}
                             @if ($movie->genres->isNotEmpty())
-                                <div class="flex min-h-[2.5rem] flex-wrap gap-1.5 sm:gap-2">
+                                <div class="flex min-h-[2rem] flex-wrap gap-1.5 sm:gap-2">
                                     @foreach ($movie->genres as $genre)
-                                        <span class="ticket-stub inline-flex max-w-[48%] items-center gap-1 truncate rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-2 py-1 text-[0.65rem] font-bold leading-tight text-amber-200 shadow-sm sm:max-w-none sm:px-3 sm:py-1.5 sm:text-xs">
+                                        <span class="ticket-stub inline-flex max-w-[46%] items-center gap-1 truncate rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-2 py-1 text-[0.6rem] font-bold leading-tight text-amber-200 shadow-sm sm:max-w-none sm:px-3 sm:py-1.5 sm:text-xs">
                                             🎫 {{ $genre->name }}
                                         </span>
                                     @endforeach
@@ -134,9 +134,9 @@
 
                             {{-- Actors as VIP Badges - Fixed min height --}}
                             @if ($movie->actors->isNotEmpty())
-                                <div class="flex min-h-[2.5rem] flex-wrap gap-1.5 sm:gap-2">
+                                <div class="flex min-h-[2rem] flex-wrap gap-1.5 sm:gap-2">
                                     @foreach ($movie->actors as $actor)
-                                        <span class="inline-flex max-w-[48%] items-center gap-1 truncate rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-purple-600/10 px-2 py-1 text-[0.65rem] font-semibold leading-tight text-purple-200 sm:max-w-none sm:px-3 sm:text-xs">
+                                        <span class="inline-flex max-w-[46%] items-center gap-1 truncate rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-purple-600/10 px-2 py-1 text-[0.6rem] font-semibold leading-tight text-purple-200 sm:max-w-none sm:px-3 sm:text-xs">
                                             ⭐ {{ $actor->name }}
                                         </span>
                                     @endforeach
