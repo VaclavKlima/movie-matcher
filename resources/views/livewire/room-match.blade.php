@@ -12,7 +12,7 @@
     }
 @endphp
 
-<div class="relative min-h-screen" wire:poll.2s.visible="refreshState">
+<div class="relative min-h-screen" wire:poll.2s.visible="refreshState" x-data x-effect="$wire.showMatchModal ? document.body.classList.add('overflow-hidden') : document.body.classList.remove('overflow-hidden')">
 
     <div class="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-10 lg:gap-10 lg:px-10 lg:py-12">
         {{-- Header with Cinema Marquee Style --}}
