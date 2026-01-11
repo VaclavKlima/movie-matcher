@@ -78,7 +78,7 @@ class DashboardController extends Controller
                 ->orderByDesc('ended_at')
                 ->limit(5)
                 ->withCount([
-                    'participants as participants_count' => function ($query) {
+                    'participants as participants_count' => function ($query): void {
                         $query->whereNull('kicked_at');
                     },
                 ])

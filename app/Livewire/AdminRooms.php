@@ -23,7 +23,7 @@ class AdminRooms extends Component
         $rooms = Room::query()
             ->select(['id', 'code', 'started_at', 'ended_at', 'created_at'])
             ->withCount([
-                'participants as participants_count' => function ($query) {
+                'participants as participants_count' => function ($query): void {
                     $query->whereNull('kicked_at');
                 },
             ])
