@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Livewire\AdminRooms;
+use App\Livewire\AdminTrends;
 use App\Livewire\Home;
 use App\Livewire\RoomJoin;
 use App\Livewire\RoomLobby;
@@ -19,6 +21,12 @@ Route::get('/rooms/{code}/stats', RoomStats::class)->name('rooms.stats');
 Route::get('dashboard', [DashboardController::class, 'show'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+Route::get('admin/rooms', AdminRooms::class)
+    ->middleware(['auth', 'verified', 'can:viewPulse'])
+    ->name('admin.rooms');
+Route::get('admin/trends', AdminTrends::class)
+    ->middleware(['auth', 'verified', 'can:viewPulse'])
+    ->name('admin.trends');
 
 Route::middleware(['auth'])->group(function (): void {
     Route::redirect('settings', 'settings/profile');

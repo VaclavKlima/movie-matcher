@@ -3,8 +3,20 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="relative min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 text-slate-100">
+        <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+            <div
+                class="absolute inset-0 opacity-70"
+                style="background-image: radial-gradient(circle at 20% 20%, rgba(251, 191, 36, 0.35) 0.5px, transparent 1px), radial-gradient(circle at 80% 30%, rgba(248, 250, 252, 0.3) 0.5px, transparent 1px), radial-gradient(circle at 35% 75%, rgba(129, 140, 248, 0.25) 0.5px, transparent 1px); background-size: 140px 140px, 200px 200px, 240px 240px;"
+            ></div>
+            <div class="absolute -left-1/3 top-10 h-72 w-[80%] rotate-[-8deg] bg-gradient-to-r from-amber-400/20 via-amber-200/10 to-transparent blur-3xl animate-spotlight"></div>
+            <div class="absolute -right-1/3 top-28 h-80 w-[80%] rotate-[8deg] bg-gradient-to-l from-purple-400/20 via-purple-300/10 to-transparent blur-3xl animate-spotlight" style="animation-delay: 1.6s"></div>
+            <div class="absolute bottom-16 left-12 h-40 w-40 rounded-full bg-amber-400/15 blur-2xl animate-float"></div>
+            <div class="absolute bottom-24 right-20 h-44 w-44 rounded-full bg-emerald-400/10 blur-2xl animate-float" style="animation-delay: 1.2s"></div>
+            <div class="absolute left-1/4 top-1/2 h-56 w-56 rounded-full bg-purple-400/10 blur-3xl animate-drift-slow"></div>
+            <div class="absolute right-1/3 top-1/4 h-36 w-36 rounded-full bg-amber-300/10 blur-2xl animate-drift-slow" style="animation-delay: 2s"></div>
+        </div>
+        <flux:sidebar sticky stashable class="border-e border-amber-400/30 bg-gradient-to-b from-slate-900/95 to-slate-950/95 text-slate-200 shadow-2xl shadow-amber-500/20 backdrop-blur-xl">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
@@ -12,11 +24,22 @@
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                <flux:navlist.group :heading="__('Platform')" class="grid text-amber-100">
+                    <flux:navlist.item :href="route('home')" :current="request()->routeIs('home')" wire:navigate>
+                        🎭 Frontend
+                    </flux:navlist.item>
+                    <flux:navlist.item :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                        🎬 Dashboard
+                    </flux:navlist.item>
                     @if (auth()->user()?->is_admin)
-                        <flux:navlist.item icon="book-open-text" :href="url(config('pulse.path', 'pulse'))" :current="request()->is(config('pulse.path', 'pulse'))">
-                            {{ __('Pulse') }}
+                        <flux:navlist.item :href="url(config('pulse.path', 'pulse'))" :current="request()->is(config('pulse.path', 'pulse'))">
+                            📊 Pulse
+                        </flux:navlist.item>
+                        <flux:navlist.item :href="route('admin.trends')" :current="request()->routeIs('admin.trends')" wire:navigate>
+                            📈 Trends Dashboard
+                        </flux:navlist.item>
+                        <flux:navlist.item :href="route('admin.rooms')" :current="request()->routeIs('admin.rooms')" wire:navigate>
+                            🎫 Screening Rooms
                         </flux:navlist.item>
                     @endif
                 </flux:navlist.group>
@@ -25,12 +48,12 @@
             <flux:spacer />
 
             <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
+                <flux:navlist.item href="https://github.com/laravel/livewire-starter-kit" target="_blank">
+                🗂️ {{ __('Repository') }}
                 </flux:navlist.item>
 
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits" target="_blank">
-                {{ __('Documentation') }}
+                <flux:navlist.item href="https://laravel.com/docs/starter-kits" target="_blank">
+                📚 {{ __('Documentation') }}
                 </flux:navlist.item>
             </flux:navlist>
 
@@ -65,15 +88,15 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profile')" wire:navigate>⚙️ {{ __('Settings') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
 
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                            {{ __('Log Out') }}
+                        <flux:menu.item as="button" type="submit" class="w-full">
+                            🚪 {{ __('Log Out') }}
                         </flux:menu.item>
                     </form>
                 </flux:menu>
@@ -132,7 +155,7 @@
 
         {{ $slot }}
 
-        <footer class="border-t border-zinc-200 bg-white px-6 py-4 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
+        <footer class="border-t border-amber-400/20 bg-gradient-to-r from-slate-900/95 to-slate-950/95 px-6 py-4 text-xs text-amber-100/70">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
                 <span>{{ config('app.name') }}</span>
                 <span>Version {{ config('version.app') }}</span>

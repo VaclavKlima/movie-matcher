@@ -119,6 +119,16 @@ select:focus[data-flux-control] {
     }
 }
 
+@keyframes drift-slow {
+    0%,
+    100% {
+        transform: translate(-12px, -10px);
+    }
+    50% {
+        transform: translate(12px, 10px);
+    }
+}
+
 @keyframes card-slide-in {
     from {
         opacity: 0;
@@ -200,6 +210,10 @@ select:focus[data-flux-control] {
 
 .animate-float {
     animation: float-gentle 3s ease-in-out infinite;
+}
+
+.animate-drift-slow {
+    animation: drift-slow 16s ease-in-out infinite;
 }
 
 .animate-card-slide {

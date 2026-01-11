@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Movie;
 use App\Models\MovieVote;
+use App\Models\Room;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -70,6 +71,53 @@ class DashboardController extends Controller
             ];
         });
 
+        $recentRooms = Cache::remember('dashboard.ended_rooms.v1', now()->addMinutes(5), function () {
+            $rooms = Room::query()
+                ->select(['id', 'code', 'ended_at', 'matched_movie_id'])
+                ->whereNotNull('ended_at')
+                ->orderByDesc('ended_at')
+                ->limit(5)
+                ->withCount([
+                    'participants as participants_count' => function ($query) {
+                        $query->whereNull('kicked_at');
+                    },
+                ])
+                ->get();
+
+            if ($rooms->isEmpty()) {
+                return collect();
+            }
+
+            $roomIds = $rooms->pluck('id');
+            $voteCounts = MovieVote::query()
+                ->select('room_id')
+                ->selectRaw("SUM(CASE WHEN decision = 'up' THEN 1 ELSE 0 END) as likes_count")
+                ->selectRaw("SUM(CASE WHEN decision = 'down' THEN 1 ELSE 0 END) as dislikes_count")
+                ->whereIn('room_id', $roomIds)
+                ->groupBy('room_id')
+                ->get()
+                ->keyBy('room_id');
+
+            $movieTitles = Movie::query()
+                ->whereIn('id', $rooms->pluck('matched_movie_id')->filter())
+                ->get(['id', 'name'])
+                ->keyBy('id');
+
+            return $rooms->map(function ($room) use ($voteCounts, $movieTitles) {
+                $votes = $voteCounts->get($room->id);
+
+                return [
+                    'code' => $room->code,
+                    'participants_count' => $room->participants_count,
+                    'likes_count' => (int) ($votes->likes_count ?? 0),
+                    'dislikes_count' => (int) ($votes->dislikes_count ?? 0),
+                    'movie_title' => $room->matched_movie_id
+                        ? ($movieTitles->get($room->matched_movie_id)->name ?? 'Unknown')
+                        : null,
+                ];
+            });
+        });
+
         $movieIndexName = (new Movie)->searchableAs();
         $searchPrefix = (string) config('scout.prefix', '');
         $fullIndexName = $searchPrefix.$movieIndexName;
@@ -105,6 +153,7 @@ class DashboardController extends Controller
         return view('dashboard', [
             'movieStats' => $movieStats,
             'searchStats' => $searchStats,
+            'recentRooms' => $recentRooms,
         ]);
     }
 }
