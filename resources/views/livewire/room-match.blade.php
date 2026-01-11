@@ -154,7 +154,7 @@
                             wire:click="vote('down')"
                             class="group/btn relative overflow-hidden rounded-2xl border-2 border-rose-400/50 bg-gradient-to-br from-rose-500/30 to-rose-600/20 px-6 py-4 font-bold text-rose-200 shadow-xl shadow-rose-900/30 transition-all duration-300 hover:scale-105 hover:border-rose-400 hover:from-rose-500/40 hover:to-rose-600/30 hover:shadow-2xl hover:shadow-rose-500/40 active:scale-95"
                         >
-                            <span class="relative z-10 flex items-center justify-center gap-2 text-base">
+                            <span class="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base">
                                 <span class="transition-transform duration-300 group-hover/btn:rotate-12 group-hover/btn:scale-125">👎</span>
                                 <span>Pass</span>
                             </span>
@@ -166,7 +166,7 @@
                             wire:click="vote('up')"
                             class="group/btn relative overflow-hidden rounded-2xl border-2 border-emerald-400/50 bg-gradient-to-br from-emerald-500/30 to-emerald-600/20 px-6 py-4 font-bold text-emerald-200 shadow-xl shadow-emerald-900/30 transition-all duration-300 hover:scale-105 hover:border-emerald-400 hover:from-emerald-500/40 hover:to-emerald-600/30 hover:shadow-2xl hover:shadow-emerald-500/40 active:scale-95"
                         >
-                            <span class="relative z-10 flex items-center justify-center gap-2 text-base">
+                            <span class="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base">
                                 <span class="transition-transform duration-300 group-hover/btn:-rotate-12 group-hover/btn:scale-125">👍</span>
                                 <span>Watch It!</span>
                             </span>
