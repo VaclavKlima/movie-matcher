@@ -22,9 +22,10 @@ final class SuggestMovie
         return $this->selectCandidate($roomId, $participantId);
     }
 
-    protected function selectCandidate(int $roomId, int $participantId): array
+    protected function selectCandidate(int $roomId, int $participantId): array  
     {
         $roomCacheTag = $this->roomCacheTag($roomId);
+        $genrePreferenceProfile = $this->genrePreferenceProfile($roomId);
 
         $tasteProfile = Cache::tags([$roomCacheTag])->remember(
             $this->tasteCacheKey($roomId, $participantId),
@@ -52,6 +53,7 @@ final class SuggestMovie
             roomId: $roomId,
             participantId: $participantId,
             tasteProfile: $tasteProfile,
+            genrePreferenceProfile: $genrePreferenceProfile,
             isExploration: $isExploration,
             candidateMovieIds: $candidateMovieIds,
         );
@@ -96,6 +98,7 @@ final class SuggestMovie
             'room_likes' => (int) ($pickedCandidate->room_likes_count ?? 0),
 
             'genre_score' => (float) ($pickedCandidate->genre_score ?? 0.0),
+            'genre_preference_score' => (float) ($pickedCandidate->genre_preference_score ?? 0.0),
             'actor_score' => (float) ($pickedCandidate->actor_score ?? 0.0),
             'year_score' => (float) ($pickedCandidate->year_score ?? 0.0),
 
@@ -106,6 +109,7 @@ final class SuggestMovie
 
             'avg_year' => $tasteProfile['avg_year'],
             'weights' => $tasteProfile['weights'],
+            'genre_preference_profile' => $genrePreferenceProfile,
 
             'multipliers' => [
                 'genre' => $tasteProfile['genre_score_multiplier'],
@@ -123,12 +127,17 @@ final class SuggestMovie
         return "movie_matcher_room_{$roomId}";
     }
 
-    private function tasteCacheKey(int $roomId, int $participantId): string
+    private function tasteCacheKey(int $roomId, int $participantId): string     
     {
         return "movie_matcher_taste_profile_room_{$roomId}_participant_{$participantId}";
     }
 
-    private function buildTasteProfile(int $roomId, int $participantId): array
+    private function genrePreferenceCacheKey(int $roomId): string
+    {
+        return "movie_matcher_genre_preference_profile_room_{$roomId}";
+    }
+
+    private function buildTasteProfile(int $roomId, int $participantId): array  
     {
         $likedMovieIds = MovieVote::query()
             ->where('room_id', $roomId)
@@ -181,6 +190,7 @@ final class SuggestMovie
 
             'rating_score' => config('moviematcher.weights.rating_score'),
             'popularity_score' => config('moviematcher.weights.popularity_score'),
+            'genre_preference' => config('moviematcher.weights.genre_preference'),
         ];
 
         return [
@@ -197,6 +207,41 @@ final class SuggestMovie
 
             'weights' => $weights,
         ];
+    }
+
+    private function genrePreferenceProfile(int $roomId): array
+    {
+        return Cache::rememberForever(
+            $this->genrePreferenceCacheKey($roomId),
+            fn () => $this->buildGenrePreferenceProfile($roomId)
+        );
+    }
+
+    private function buildGenrePreferenceProfile(int $roomId): array
+    {
+        $rows = DB::table('room_participant_genre_preferences as preferences')
+            ->join('room_participants as participants', 'participants.id', '=', 'preferences.room_participant_id')
+            ->where('participants.room_id', $roomId)
+            ->select('preferences.genre_id', 'preferences.preference', DB::raw('count(*) as total'))
+            ->groupBy('preferences.genre_id', 'preferences.preference')
+            ->get();
+
+        $weightsByGenreId = [];
+
+        foreach ($rows as $row) {
+            $genreId = (int) $row->genre_id;
+            $count = (int) $row->total;
+            $direction = $row->preference === 'avoid' ? -1.0 : 1.0;
+            $weight = $this->preferenceWeightForCount($count) * $direction;
+
+            if (! isset($weightsByGenreId[$genreId])) {
+                $weightsByGenreId[$genreId] = 0.0;
+            }
+
+            $weightsByGenreId[$genreId] += $weight;
+        }
+
+        return $weightsByGenreId;
     }
 
     private function buildTagScoresByTagId(
@@ -359,6 +404,7 @@ final class SuggestMovie
         int $roomId,
         int $participantId,
         array $tasteProfile,
+        array $genrePreferenceProfile,
         bool $isExploration,
         array $candidateMovieIds
     ) {
@@ -372,6 +418,7 @@ final class SuggestMovie
         $hasTaste = $hasGenreTaste || $hasActorTaste || $hasYearTaste;
 
         $weights = $tasteProfile['weights'];
+        $hasGenrePreferenceProfile = ! empty($genrePreferenceProfile);
 
         // Rating score based on TMDB vote_average (0..10) weighted by vote_count (Bayesian average)
         // Formula: (v/(v+m)) * R + (m/(v+m)) * C
@@ -489,9 +536,11 @@ final class SuggestMovie
 
         $genreScoreBaseQuery = $this->buildScoreBaseQuery($tasteProfile['genre_scores_by_id']);
         $actorScoreBaseQuery = $this->buildScoreBaseQuery($tasteProfile['actor_scores_by_id']);
+        $genrePreferenceScoreBaseQuery = $this->buildScoreBaseQuery($genrePreferenceProfile);
 
         $genreScoreExpression = $hasGenreTaste ? 'coalesce(sum(genre_scores.score), 0)' : '0';
         $actorScoreExpression = $hasActorTaste ? 'coalesce(sum(actor_scores.score), 0)' : '0';
+        $genrePreferenceExpression = $hasGenrePreferenceProfile ? 'coalesce(sum(genre_preference_scores.score), 0)' : '0';
 
         $genreLikeCountsSubquery = $this->buildTagLikeCountsSubquery(
             roomId: $roomId,
@@ -524,6 +573,7 @@ final class SuggestMovie
             '('.
             $weights['room_likes'].' * count(distinct room_likes.room_participant_id) + '.
             $weights['genre_score'].' * '.$genreScoreExpression.' + '.
+            $weights['genre_preference'].' * '.$genrePreferenceExpression.' + '.
             $weights['actor_score'].' * '.$actorScoreExpression.' + '.
             $weights['year_score'].' * '.$yearScoreExpression.' + '.
             $weights['rating_score'].' * '.$ratingScoreExpression.' + '.
@@ -556,6 +606,16 @@ final class SuggestMovie
                 ->crossJoinSub($genreLikeAverageSubquery, 'genre_like_averages');
         }
 
+        if ($hasGenrePreferenceProfile) {
+            $candidateQuery
+                ->leftJoin('movie_genre as genre_preference_match', function ($join): void {
+                    $join->on('genre_preference_match.movie_id', '=', 'movies.id');
+                })
+                ->leftJoinSub($genrePreferenceScoreBaseQuery, 'genre_preference_scores', function ($join): void {
+                    $join->on('genre_preference_scores.tag_id', '=', 'genre_preference_match.genre_id');
+                });
+        }
+
         if ($hasActorTaste) {
             $candidateQuery
                 ->leftJoin('movie_actor as actor_match', function ($join) use ($topActorIds): void {
@@ -575,6 +635,7 @@ final class SuggestMovie
             ->select(['movies.id'])
             ->selectRaw('count(distinct room_likes.room_participant_id) as room_likes_count')
             ->selectRaw($genreScoreExpression.' as genre_score')
+            ->selectRaw($genrePreferenceExpression.' as genre_preference_score')
             ->selectRaw($actorScoreExpression.' as actor_score')
             ->selectRaw($yearScoreExpression.' as year_score')
             ->selectRaw($ratingScoreExpression.' as rating_score')
@@ -663,6 +724,30 @@ final class SuggestMovie
         }
 
         return $baseQuery;
+    }
+
+    private function preferenceWeightForCount(int $count): float
+    {
+        if ($count <= 0) {
+            return 0.0;
+        }
+
+        $base = (float) config('moviematcher.weights.genre_preference_base', 1.0);
+        $decay = (float) config('moviematcher.weights.genre_preference_decay', 0.5);
+
+        if ($base <= 0.0) {
+            return 0.0;
+        }
+
+        if ($decay <= 0.0) {
+            return $base;
+        }
+
+        if ($decay >= 1.0) {
+            return $base * $count;
+        }
+
+        return $base * ((1 - ($decay ** $count)) / (1 - $decay));
     }
 
     private function weightedRandomPick(Collection $candidates, string $scoreColumn)

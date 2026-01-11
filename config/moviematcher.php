@@ -19,6 +19,9 @@ return [
         'year_score' => (float) env('MOVIEMATCHER_YEAR_SCORE_WEIGHT', 0.20),
         'rating_score' => (float) env('MOVIEMATCHER_RATING_SCORE_WEIGHT', 0.35),
         'popularity_score' => (float) env('MOVIEMATCHER_POPULARITY_SCORE_WEIGHT', 0.15),
+        'genre_preference' => (float) env('MOVIEMATCHER_GENRE_PREFERENCE_WEIGHT', 0.30),
+        'genre_preference_base' => (float) env('MOVIEMATCHER_GENRE_PREFERENCE_BASE', 1.0),
+        'genre_preference_decay' => (float) env('MOVIEMATCHER_GENRE_PREFERENCE_DECAY', 0.5),
     ],
 
     /*

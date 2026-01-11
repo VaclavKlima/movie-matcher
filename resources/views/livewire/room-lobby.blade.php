@@ -8,6 +8,10 @@
     $hasEnoughPlayers = $participantCount >= 2;
     $everyoneReady = $participants->every(fn ($participant) => (bool) $participant->is_ready);
     $canStartMatching = $hasEnoughPlayers && $everyoneReady;
+    $preferredCount = count($preferredGenreIds);
+    $avoidedCount = count($avoidedGenreIds);
+    $preferredAtLimit = $preferredCount >= 3;
+    $avoidedAtLimit = $avoidedCount >= 3;
     $readyBadgeClasses = $isReady
         ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-300'
         : 'border-slate-600/50 bg-slate-700/30 text-slate-400';
@@ -211,6 +215,101 @@
                                         @endif
                                     </button>
                                 @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Genre Preferences --}}
+                    <div
+                        class="rounded-3xl border-2 border-amber-400/30 bg-gradient-to-br from-slate-800/80 to-slate-900/80 p-6 shadow-2xl shadow-amber-500/20 backdrop-blur-xl"
+                        x-data="genreSelector(@js($genres->map(fn($g) => ['id' => $g->id, 'name' => $g->name])->values()), @js($preferredGenreIds), @js($avoidedGenreIds), $wire)"
+                    >
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-amber-200 drop-shadow-[0_0_30px_rgba(251,191,36,0.3)]">
+                                    🎬 Genre Preferences
+                                </h2>
+                                <p class="mt-2 text-sm text-purple-200/80">
+                                    Choose up to 3 must-watch genres and 3 to skip for this screening.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="ticket-stub inline-flex items-center gap-1 rounded-r-lg border-l-2 border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-200 shadow-sm sm:px-4 sm:py-2 sm:text-xs"
+                                    x-text="'👍 ' + preferredCount + '/3'"
+                                ></span>
+                                <span
+                                    class="ticket-stub inline-flex items-center gap-1 rounded-r-lg border-l-2 border-rose-400/50 bg-gradient-to-r from-rose-500/20 to-rose-600/10 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-rose-200 shadow-sm sm:px-4 sm:py-2 sm:text-xs"
+                                    x-text="'👎 ' + avoidedCount + '/3'"
+                                ></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid gap-6 sm:grid-cols-2">
+                            {{-- Must-Watch Genres --}}
+                            <div class="rounded-2xl border border-emerald-400/20 bg-slate-900/40 p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">🎯</span>
+                                        <div class="text-sm font-bold uppercase tracking-[0.15em] text-emerald-200">Must-Watch</div>
+                                    </div>
+                                    <span
+                                        class="ticket-stub inline-flex items-center rounded-r-lg border-l-2 border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 px-2 py-1 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-emerald-200 shadow-sm sm:px-3 sm:py-1.5 sm:text-xs"
+                                        x-text="preferredCount + '/3'"
+                                    ></span>
+                                </div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <template x-for="genre in genres" :key="'pref-' + genre.id">
+                                        <button
+                                            type="button"
+                                            @click="togglePreferred(genre.id)"
+                                            :disabled="preferredAtLimit && !isPreferred(genre.id)"
+                                            class="ticket-stub inline-flex items-center rounded-r-lg border-l-2 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] transition-all duration-200 sm:px-4 sm:py-2 sm:text-xs"
+                                            :class="{
+                                                'border-emerald-400/60 bg-gradient-to-r from-emerald-500/30 to-emerald-600/10 text-emerald-100 shadow-sm shadow-emerald-500/20 ring-2 ring-emerald-400/20': isPreferred(genre.id),
+                                                'border-slate-600/50 bg-gradient-to-r from-slate-800/70 to-slate-700/50 text-slate-300 hover:border-emerald-400/40 hover:from-emerald-500/20 hover:to-emerald-600/10 hover:scale-105 active:scale-95': !isPreferred(genre.id) && !preferredAtLimit,
+                                                'cursor-not-allowed opacity-50 border-slate-700/30 bg-slate-800/30 text-slate-500': preferredAtLimit && !isPreferred(genre.id)
+                                            }"
+                                            x-text="genre.name"
+                                        ></button>
+                                    </template>
+                                    <div x-show="genres.length === 0" class="text-sm text-purple-300/80">
+                                        🍿 No genres available yet.
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Skip Genres --}}
+                            <div class="rounded-2xl border border-rose-400/20 bg-slate-900/40 p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">🚫</span>
+                                        <div class="text-sm font-bold uppercase tracking-[0.15em] text-rose-200">Skip These</div>
+                                    </div>
+                                    <span
+                                        class="ticket-stub inline-flex items-center rounded-r-lg border-l-2 border-rose-400/50 bg-gradient-to-r from-rose-500/20 to-rose-600/10 px-2 py-1 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-rose-200 shadow-sm sm:px-3 sm:py-1.5 sm:text-xs"
+                                        x-text="avoidedCount + '/3'"
+                                    ></span>
+                                </div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <template x-for="genre in genres" :key="'avoid-' + genre.id">
+                                        <button
+                                            type="button"
+                                            @click="toggleAvoided(genre.id)"
+                                            :disabled="avoidedAtLimit && !isAvoided(genre.id)"
+                                            class="ticket-stub inline-flex items-center rounded-r-lg border-l-2 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] transition-all duration-200 sm:px-4 sm:py-2 sm:text-xs"
+                                            :class="{
+                                                'border-rose-400/60 bg-gradient-to-r from-rose-500/30 to-rose-600/10 text-rose-100 shadow-sm shadow-rose-500/20 ring-2 ring-rose-400/20': isAvoided(genre.id),
+                                                'border-slate-600/50 bg-gradient-to-r from-slate-800/70 to-slate-700/50 text-slate-300 hover:border-rose-400/40 hover:from-rose-500/20 hover:to-rose-600/10 hover:scale-105 active:scale-95': !isAvoided(genre.id) && !avoidedAtLimit,
+                                                'cursor-not-allowed opacity-50 border-slate-700/30 bg-slate-800/30 text-slate-500': avoidedAtLimit && !isAvoided(genre.id)
+                                            }"
+                                            x-text="genre.name"
+                                        ></button>
+                                    </template>
+                                    <div x-show="genres.length === 0" class="text-sm text-purple-300/80">
+                                        🍿 No genres available yet.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

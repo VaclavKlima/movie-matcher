@@ -21,6 +21,7 @@ class GetRoomStats
             ->orderByDesc('is_host')
             ->orderBy('created_at')
             ->get();
+        $participants->load(['genrePreferences' => fn ($query) => $query->orderBy('name')]);
 
         $currentParticipant = $participants->firstWhere('player_cookie_id', $playerCookieId);
 
@@ -193,6 +194,26 @@ class GetRoomStats
             ->sortDesc()
             ->take(6);
 
+        $participantGenrePreferences = $participants
+            ->mapWithKeys(function ($participant) {
+                $preferred = $participant->genrePreferences
+                    ->where('pivot.preference', 'prefer')
+                    ->pluck('name')
+                    ->values();
+                $avoided = $participant->genrePreferences
+                    ->where('pivot.preference', 'avoid')
+                    ->pluck('name')
+                    ->values();
+
+                return [
+                    $participant->id => [
+                        'participant' => $participant,
+                        'preferred' => $preferred,
+                        'avoided' => $avoided,
+                    ],
+                ];
+            });
+
         return new RoomStatsData(
             room: $room,
             participants: $participants,
@@ -209,6 +230,7 @@ class GetRoomStats
             overallApproval: $overallApproval,
             genreCounts: $genreCounts,
             actorCounts: $actorCounts,
+            participantGenrePreferences: $participantGenrePreferences,
             nonHostCount: $nonHostCount,
             selectedAudienceYes: $selectedAudienceYes,
             selectedAudienceYesPercent: $selectedAudienceYesPercent,

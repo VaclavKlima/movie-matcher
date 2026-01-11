@@ -107,4 +107,125 @@ document.addEventListener('alpine:init', () => {
             return this.state !== 'closed';
         },
     }));
+
+    Alpine.data('genreSelector', (genres, initialPreferred, initialAvoided, wire) => ({
+        genres: genres || [],
+        preferred: initialPreferred || [],
+        avoided: initialAvoided || [],
+        syncTimeout: null,
+
+        init() {
+            // Watch for changes and sync to Livewire
+            this.$watch('preferred', () => this.debouncedSync());
+            this.$watch('avoided', () => this.debouncedSync());
+        },
+
+        togglePreferred(genreId) {
+            genreId = parseInt(genreId, 10);
+
+            // Validate genre ID
+            if (!genreId || genreId <= 0) {
+                return;
+            }
+
+            // Check if already preferred
+            const index = this.preferred.indexOf(genreId);
+            if (index !== -1) {
+                // Remove from preferred
+                this.preferred.splice(index, 1);
+                return;
+            }
+
+            // Check limit
+            if (this.preferred.length >= 3) {
+                Alpine.store('toasts').push('⚠️ Pick up to 3 favorites.', 'warning');
+                return;
+            }
+
+            // Remove from avoided if present
+            const avoidedIndex = this.avoided.indexOf(genreId);
+            if (avoidedIndex !== -1) {
+                this.avoided.splice(avoidedIndex, 1);
+            }
+
+            // Add to preferred
+            this.preferred.push(genreId);
+        },
+
+        toggleAvoided(genreId) {
+            genreId = parseInt(genreId, 10);
+
+            // Validate genre ID
+            if (!genreId || genreId <= 0) {
+                return;
+            }
+
+            // Check if already avoided
+            const index = this.avoided.indexOf(genreId);
+            if (index !== -1) {
+                // Remove from avoided
+                this.avoided.splice(index, 1);
+                return;
+            }
+
+            // Check limit
+            if (this.avoided.length >= 3) {
+                Alpine.store('toasts').push('⚠️ Pick up to 3 passes.', 'warning');
+                return;
+            }
+
+            // Remove from preferred if present
+            const preferredIndex = this.preferred.indexOf(genreId);
+            if (preferredIndex !== -1) {
+                this.preferred.splice(preferredIndex, 1);
+            }
+
+            // Add to avoided
+            this.avoided.push(genreId);
+        },
+
+        isPreferred(genreId) {
+            return this.preferred.includes(parseInt(genreId, 10));
+        },
+
+        isAvoided(genreId) {
+            return this.avoided.includes(parseInt(genreId, 10));
+        },
+
+        get preferredCount() {
+            return this.preferred.length;
+        },
+
+        get avoidedCount() {
+            return this.avoided.length;
+        },
+
+        get preferredAtLimit() {
+            return this.preferred.length >= 3;
+        },
+
+        get avoidedAtLimit() {
+            return this.avoided.length >= 3;
+        },
+
+        debouncedSync() {
+            if (this.syncTimeout) {
+                clearTimeout(this.syncTimeout);
+            }
+
+            this.syncTimeout = setTimeout(() => {
+                this.syncToLivewire();
+            }, 500);
+        },
+
+        async syncToLivewire() {
+            if (wire?.$call) {
+                try {
+                    await wire.$call('updateGenrePreferences', this.preferred, this.avoided);
+                } catch (error) {
+                    console.error('Failed to sync genre preferences:', error);
+                }
+            }
+        },
+    }));
 });

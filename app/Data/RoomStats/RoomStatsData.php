@@ -27,6 +27,7 @@ class RoomStatsData extends Data
         public int $overallApproval,
         public Collection $genreCounts,
         public Collection $actorCounts,
+        public Collection $participantGenrePreferences,
         public int $nonHostCount,
         public int $selectedAudienceYes,
         public int $selectedAudienceYesPercent,

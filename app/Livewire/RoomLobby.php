@@ -2,12 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Models\Genre;
 use App\Models\Room;
 use App\Models\RoomParticipant;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 class RoomLobby extends Component
@@ -33,6 +35,10 @@ class RoomLobby extends Component
     public array $avatars = [];
 
     public array $knownParticipantIds = [];
+
+    public array $preferredGenreIds = [];
+
+    public array $avoidedGenreIds = [];
 
     public function mount(?string $code = null): void
     {
@@ -97,6 +103,7 @@ class RoomLobby extends Component
         $this->isHost = $isHost;
         $this->isKicked = $participant->kicked_at !== null;
         $this->isReady = (bool) $participant->is_ready;
+        $this->loadGenrePreferences();
 
         $this->knownParticipantIds = RoomParticipant::where('room_id', $this->roomId)
             ->whereNull('kicked_at')
@@ -125,6 +132,25 @@ class RoomLobby extends Component
         }
 
         $this->participant()->update(['avatar' => $this->avatar]);
+    }
+
+    #[Renderless]
+    public function updateGenrePreferences(array $preferred, array $avoided): void
+    {
+        if ($this->isKicked) {
+            return;
+        }
+
+        $preferredIds = array_slice($this->normalizeGenreIds($preferred), 0, 3);
+        $avoidedIds = array_slice($this->normalizeGenreIds($avoided), 0, 3);
+
+        $preferredIds = array_values(array_diff($preferredIds, $avoidedIds));
+        $avoidedIds = array_values(array_diff($avoidedIds, $preferredIds));
+
+        $this->preferredGenreIds = $preferredIds;
+        $this->avoidedGenreIds = $avoidedIds;
+
+        $this->saveGenrePreferences();
     }
 
     public function refreshParticipants(): void
@@ -265,8 +291,11 @@ class RoomLobby extends Component
             ->orderBy('created_at')
             ->get();
 
+        $genres = Genre::orderBy('name')->get();
+
         return view('livewire.room-lobby', [
             'participants' => $participants,
+            'genres' => $genres,
         ])->layout('components.layouts.marketing', ['title' => 'Room '.$this->roomCode]);
     }
 
@@ -283,5 +312,75 @@ class RoomLobby extends Component
 
         RoomParticipant::where('id', $this->participantId)
             ->update(['last_seen_at' => Carbon::now()]);
+    }
+
+    protected function loadGenrePreferences(): void
+    {
+        $preferences = $this->participant()
+            ->genrePreferences()
+            ->get(['genres.id', 'room_participant_genre_preferences.preference']);
+
+        $this->preferredGenreIds = $preferences
+            ->where('pivot.preference', 'prefer')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $this->avoidedGenreIds = $preferences
+            ->where('pivot.preference', 'avoid')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    protected function saveGenrePreferences(): void
+    {
+        // Normalize genre IDs first
+        $this->preferredGenreIds = $this->normalizeGenreIds($this->preferredGenreIds);
+        $this->avoidedGenreIds = $this->normalizeGenreIds($this->avoidedGenreIds);
+
+        // Build sync data array with explicit validation
+        $syncData = [];
+
+        // Add preferred genres
+        foreach ($this->preferredGenreIds as $id) {
+            $id = (int) $id;
+            if ($id > 0) {
+                $syncData[$id] = ['preference' => 'prefer'];
+            }
+        }
+
+        // Add avoided genres
+        foreach ($this->avoidedGenreIds as $id) {
+            $id = (int) $id;
+            if ($id > 0) {
+                $syncData[$id] = ['preference' => 'avoid'];
+            }
+        }
+
+        // Sync to database - empty array will clear all preferences
+        $this->participant()->genrePreferences()->sync($syncData);
+    }
+
+    protected function normalizeGenreIds(array $genreIds): array
+    {
+        $ids = collect($genreIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
+        return Genre::whereIn('id', $ids)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class RoomParticipant extends Model
 {
@@ -31,5 +32,12 @@ class RoomParticipant extends Model
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function genrePreferences(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class, 'room_participant_genre_preferences')
+            ->withPivot('preference')
+            ->withTimestamps();
     }
 }

@@ -27,7 +27,7 @@ class RoomStats extends Component
     {
         $playerCookieId = PlayerCookie::getOrCreate();
         $roomId = $this->roomId;
-        $cacheKey = "room-stats:{$roomId}:{$playerCookieId}";
+        $cacheKey = "room-stats:v2:{$roomId}:{$playerCookieId}";
 
         $stats = Cache::rememberForever($cacheKey, function () use ($getRoomStats, $roomId, $playerCookieId) {
             return $getRoomStats->handle($roomId, $playerCookieId);

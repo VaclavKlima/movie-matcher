@@ -233,6 +233,78 @@
             @endif
         </section>
 
+        {{-- Audience Genre Picks --}}
+        <section class="rounded-3xl border-2 border-amber-400/40 bg-gradient-to-br from-slate-800/90 to-slate-900/90 p-6 shadow-2xl shadow-amber-500/30 backdrop-blur-xl transition-all duration-300 hover:border-amber-300/60 hover:shadow-amber-500/40">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-amber-100 drop-shadow-lg">🎟️ Audience Genre Picks</h2>
+                    <p class="mt-2 text-sm text-purple-200/80">Who cheered and who passed on each genre.</p>
+                </div>
+                <div class="ticket-stub inline-flex items-center gap-2 rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-amber-200">
+                    🎬 Final Taste
+                </div>
+            </div>
+
+            @if ($stats->participantGenrePreferences->isEmpty())
+                <div class="mt-6 flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-amber-400/30 bg-slate-900/40 px-6 py-10 text-center text-purple-200/80">
+                    <span class="text-4xl opacity-70">🍿</span>
+                    <p class="text-sm">No genre picks were logged.</p>
+                </div>
+            @else
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($stats->participantGenrePreferences as $entry)
+                        @php
+                            $participant = $entry['participant'];
+                            $avatarData = $avatarMap[$participant->avatar] ?? $avatars[0];
+                            $preferred = $entry['preferred'];
+                            $avoided = $entry['avoided'];
+                        @endphp
+                        <div class="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-slate-800/90 to-slate-900/80 p-4 shadow-lg transition-all duration-300 hover:border-amber-300/60 hover:shadow-amber-500/20">
+                            <div class="flex items-center gap-3">
+                                <span class="cinema-seat flex h-12 w-12 shrink-0 items-center justify-center text-xl font-black shadow-lg {{ $avatarData['bg'] }} {{ $avatarData['text'] }} {{ $avatarData['ring'] }} ring-2 ring-inset ring-offset-2 ring-offset-slate-900">
+                                    <x-movie-avatar-icon :id="$avatarData['id']" class="h-6 w-6" />
+                                </span>
+                                <div>
+                                    <div class="font-bold text-amber-50">{{ $participant->name ?? 'Guest' }}</div>
+                                    <div class="text-xs text-purple-300/80">
+                                        {{ $participant->is_host ? '👑 Host' : '🎬 Viewer' }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 space-y-3">
+                                <div>
+                                    <div class="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">👍 Watch It!</div>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @forelse ($preferred as $genre)
+                                            <span class="ticket-stub inline-flex items-center rounded-r-lg border-l-2 border-emerald-400/50 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-emerald-200">
+                                                {{ $genre }}
+                                            </span>
+                                        @empty
+                                            <span class="text-xs text-purple-300/80">No cheers logged.</span>
+                                        @endforelse
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="text-xs font-bold uppercase tracking-[0.2em] text-rose-200">👎 Pass</div>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @forelse ($avoided as $genre)
+                                            <span class="ticket-stub inline-flex items-center rounded-r-lg border-l-2 border-rose-400/50 bg-gradient-to-r from-rose-500/20 to-rose-600/10 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-rose-200">
+                                                {{ $genre }}
+                                            </span>
+                                        @empty
+                                            <span class="text-xs text-purple-300/80">No passes logged.</span>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
         {{-- Match Reel --}}
         <section class="rounded-3xl border-2 border-amber-400/30 bg-gradient-to-br from-slate-800/90 to-slate-900/90 p-6 shadow-2xl shadow-amber-500/20 backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 hover:shadow-amber-500/30">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
