@@ -154,30 +154,22 @@
                                 class="mt-4 flex flex-wrap items-center gap-3"
                                 x-data="clipboardHelper('Link copied!')"
                             >
-                            <button
-                                type="button"
-                                class="group/btn relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-purple-400/50 bg-gradient-to-r from-purple-500/30 to-purple-600/30 px-5 py-2.5 text-sm font-bold text-purple-100 shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 hover:border-purple-400 hover:from-purple-500/40 hover:to-purple-600/30 active:scale-95"
-                                x-on:click="copy('{{ $shareUrl }}')"
-                            >
-                                <span class="relative z-10">📋 Share Link</span>
-                                <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 group-hover/btn:translate-x-full"></div>
-                            </button>
+                                <button
+                                    type="button"
+                                    class="group/btn relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-purple-400/50 bg-gradient-to-r from-purple-500/30 to-purple-600/30 px-5 py-2.5 text-sm font-bold text-purple-100 shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 hover:border-purple-400 hover:from-purple-500/40 hover:to-purple-600/30 active:scale-95"
+                                    x-on:click="copy('{{ $shareUrl }}')"
+                                >
+                                    <span class="relative z-10">📋 Share Link</span>
+                                    <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 group-hover/btn:translate-x-full"></div>
+                                </button>
 
-                            <button
-                                type="button"
-                                class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-amber-400/30 hover:bg-slate-700/50 hover:text-amber-200"
-                                x-on:click="$store.roomReveal.show = ! $store.roomReveal.show"
-                                x-text="$store.roomReveal.show ? '🙈 Hide Link' : '👁️ Show Link'"
-                            >
-                            </button>
-
-                            <button
-                                type="button"
-                                class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald-400/30 hover:bg-slate-700/50 hover:text-emerald-200"
-                                x-on:click="$store.roomReveal.show = true; $dispatch('show-room-code'); document.getElementById('room-code-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
-                            >
-                                👁️ Show Code
-                            </button>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-amber-400/30 hover:bg-slate-700/50 hover:text-amber-200"
+                                    x-on:click="$store.roomReveal.show = ! $store.roomReveal.show"
+                                    x-text="$store.roomReveal.show ? '🙈 Hide Link' : '👁️ Show Link'"
+                                >
+                                </button>
                             </div>
                         </div>
                     </div>
