@@ -13,7 +13,7 @@ return [
     */
 
     'weights' => [
-        'room_likes' => (float) env('MOVIEMATCHER_ROOM_LIKE_WEIGHT', 0.30),
+        'room_likes' => (float) env('MOVIEMATCHER_ROOM_LIKE_WEIGHT', 0.45),
         'genre_score' => (float) env('MOVIEMATCHER_GENRE_SCORE_WEIGHT', 0.40),
         'actor_score' => (float) env('MOVIEMATCHER_ACTOR_SCORE_WEIGHT', 0.40),
         'year_score' => (float) env('MOVIEMATCHER_YEAR_SCORE_WEIGHT', 0.20),
