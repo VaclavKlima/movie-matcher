@@ -22,7 +22,7 @@ final class SuggestMovie
         return $this->selectCandidate($roomId, $participantId);
     }
 
-    protected function selectCandidate(int $roomId, int $participantId): array  
+    protected function selectCandidate(int $roomId, int $participantId): array
     {
         $roomCacheTag = $this->roomCacheTag($roomId);
         $genrePreferenceProfile = $this->genrePreferenceProfile($roomId);
@@ -127,7 +127,7 @@ final class SuggestMovie
         return "movie_matcher_room_{$roomId}";
     }
 
-    private function tasteCacheKey(int $roomId, int $participantId): string     
+    private function tasteCacheKey(int $roomId, int $participantId): string
     {
         return "movie_matcher_taste_profile_room_{$roomId}_participant_{$participantId}";
     }
@@ -137,7 +137,7 @@ final class SuggestMovie
         return "movie_matcher_genre_preference_profile_room_{$roomId}";
     }
 
-    private function buildTasteProfile(int $roomId, int $participantId): array  
+    private function buildTasteProfile(int $roomId, int $participantId): array
     {
         $likedMovieIds = MovieVote::query()
             ->where('room_id', $roomId)
