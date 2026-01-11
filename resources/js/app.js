@@ -47,8 +47,11 @@ document.addEventListener('alpine:init', () => {
         },
     });
 
+    Alpine.store('roomReveal', {
+        show: false,
+    });
+
     Alpine.data('roomCodePanel', (successMessage = 'Room code copied') => ({
-        showCode: true,
         async copy(text) {
             const successful = await copyToClipboard(text);
             if (successful) {

@@ -89,25 +89,25 @@
                 {{-- Room Code Card --}}
                 <div class="group rounded-2xl border-2 border-amber-400/30 bg-gradient-to-br from-slate-800/90 to-slate-900/90 p-6 shadow-2xl shadow-amber-500/20 backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 hover:shadow-amber-500/30">
                     <div class="text-xs font-bold uppercase tracking-[0.25em] text-amber-300/80">Screening Room</div>
-                    <div
-                        id="room-code-panel"
-                        class="mt-3 flex items-center gap-2"
-                        x-data="roomCodePanel('Code copied!')"
-                        x-on:show-room-code.window="showCode = true"
-                    >
-                        <div class="flex items-center gap-2 rounded-xl border border-amber-400/20 bg-slate-950/50 px-4 py-2.5">
-                            <span class="text-xl">🎫</span>
-                            <span class="text-xl font-black tracking-[0.4em] text-amber-200" x-text="showCode ? '{{ $roomCode }}' : '●●●●●●'"></span>
-                        </div>
-                        <button
-                            type="button"
-                            class="rounded-lg border border-slate-600/50 bg-slate-800/50 px-3 py-2 text-xs font-bold text-slate-300 transition hover:border-amber-400/30 hover:bg-slate-700/50 hover:text-amber-200"
-                            x-on:click="showCode = !showCode"
-                            x-text="showCode ? 'Hide' : 'Show'"
-                        ></button>
-                        <button
-                            type="button"
-                            class="rounded-lg border border-slate-600/50 bg-slate-800/50 px-3 py-2 text-xs font-bold text-slate-300 transition hover:border-emerald-400/30 hover:bg-slate-700/50 hover:text-emerald-200"
+                        <div
+                            id="room-code-panel"
+                            class="mt-3 flex items-center gap-2"
+                            x-data="roomCodePanel('Code copied!')"
+                            x-on:show-room-code.window="$store.roomReveal.show = true"
+                        >
+                            <div class="flex items-center gap-2 rounded-xl border border-amber-400/20 bg-slate-950/50 px-4 py-2.5">
+                                <span class="text-xl">🎫</span>
+                                <span class="text-xl font-black tracking-[0.4em] text-amber-200" x-text="$store.roomReveal.show ? '{{ $roomCode }}' : '●●●●●●'"></span>
+                            </div>
+                            <button
+                                type="button"
+                                class="rounded-lg border border-slate-600/50 bg-slate-800/50 px-3 py-2 text-xs font-bold text-slate-300 transition hover:border-amber-400/30 hover:bg-slate-700/50 hover:text-amber-200"
+                                x-on:click="$store.roomReveal.show = ! $store.roomReveal.show"
+                                x-text="$store.roomReveal.show ? 'Hide' : 'Show'"
+                            ></button>
+                            <button
+                                type="button"
+                                class="rounded-lg border border-slate-600/50 bg-slate-800/50 px-3 py-2 text-xs font-bold text-slate-300 transition hover:border-emerald-400/30 hover:bg-slate-700/50 hover:text-emerald-200"
                             x-on:click="copy('{{ $roomCode }}')"
                         >
                             Copy
@@ -141,14 +141,19 @@
                             </div>
                         </div>
 
-                        <div class="mt-5 rounded-xl border border-slate-600/50 bg-slate-950/50 px-4 py-3 text-sm font-mono text-amber-200/90">
-                            {{ $shareUrl }}
-                        </div>
+                        @php
+                            $maskedShareUrl = preg_replace('#/rooms/[^/]+/join#', '/rooms/******/join', $shareUrl);
+                        @endphp
+                        <div>
+                            <div
+                                class="mt-5 rounded-xl border border-slate-600/50 bg-slate-950/50 px-4 py-3 text-sm font-mono text-amber-200/90"
+                                x-text="$store.roomReveal.show ? '{{ $shareUrl }}' : '{{ $maskedShareUrl }}'"
+                            ></div>
 
-                        <div
-                            class="mt-4 flex flex-wrap items-center gap-3"
-                            x-data="clipboardHelper('Link copied!')"
-                        >
+                            <div
+                                class="mt-4 flex flex-wrap items-center gap-3"
+                                x-data="clipboardHelper('Link copied!')"
+                            >
                             <button
                                 type="button"
                                 class="group/btn relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-purple-400/50 bg-gradient-to-r from-purple-500/30 to-purple-600/30 px-5 py-2.5 text-sm font-bold text-purple-100 shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 hover:border-purple-400 hover:from-purple-500/40 hover:to-purple-600/30 active:scale-95"
@@ -160,19 +165,20 @@
 
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald-400/30 hover:bg-slate-700/50 hover:text-emerald-200"
-                                x-on:click="$dispatch('show-room-code'); document.getElementById('room-code-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
+                                class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-amber-400/30 hover:bg-slate-700/50 hover:text-amber-200"
+                                x-on:click="$store.roomReveal.show = ! $store.roomReveal.show"
+                                x-text="$store.roomReveal.show ? '🙈 Hide Link' : '👁️ Show Link'"
                             >
-                                👁️ Show Code
                             </button>
 
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-amber-400/30 hover:bg-slate-700/50 hover:text-amber-200"
-                                x-on:click="copy('{{ $roomCode }}')"
+                                class="inline-flex items-center gap-2 rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:border-emerald-400/30 hover:bg-slate-700/50 hover:text-emerald-200"
+                                x-on:click="$store.roomReveal.show = true; $dispatch('show-room-code'); document.getElementById('room-code-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
                             >
-                                📝 Copy Code
+                                👁️ Show Code
                             </button>
+                            </div>
                         </div>
                     </div>
 
