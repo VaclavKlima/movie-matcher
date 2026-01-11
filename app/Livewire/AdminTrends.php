@@ -15,6 +15,7 @@ class AdminTrends extends Component
     {
         if (! auth()->user()?->is_admin) {
             $this->redirectRoute('dashboard');
+
             return;
         }
     }
