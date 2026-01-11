@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.0](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.5...moviematcher-v0.1.0) (2026-01-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deployment:** APP_KEY must be set in the environment to ensure stable cookies and consistent encryption across deployments.
+
+### Features
+
+* **config:** adjust room_likes weight for moviematcher scoring system ([01507ff](https://github.com/VaclavKlima/movie-matcher/commit/01507ffc157beb12f3c0418383dfe0cc3c194ffa))
+* **deployment:** support persistent APP_KEY across redeploys ([ba8ed85](https://github.com/VaclavKlima/movie-matcher/commit/ba8ed856b6e86a065c9abcb24a382e0aa92d5e3e))
+* **refactor:** enforce strict typing and integrate Rector for Laravel ([2fec77c](https://github.com/VaclavKlima/movie-matcher/commit/2fec77c8c8be49d7007bb12cd210a10843273d2e))
+* **ui:** add admin rooms and trends dashboards with updated layouts ([74823cb](https://github.com/VaclavKlima/movie-matcher/commit/74823cbbda42c12efdcf3fda4f0d29d0fd942116))
+* **ui:** redesign app logo with new SVG and updated branding ([40caa75](https://github.com/VaclavKlima/movie-matcher/commit/40caa75a2b6d867d013d24ec646311c662f91a2a))
+
 ## [0.0.5](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.4...moviematcher-v0.0.5) (2026-01-05)
 
 
