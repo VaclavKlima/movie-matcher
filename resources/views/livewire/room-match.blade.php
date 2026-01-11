@@ -78,7 +78,7 @@
                     {{-- Movie Card with fixed heights --}}
                     <div class="animate-card-slide mt-6 overflow-hidden rounded-2xl border-2 border-slate-700/50 bg-gradient-to-br from-slate-900 to-slate-800 shadow-xl" x-data="{ voted: false }">
                         {{-- Poster Section - Fixed Height --}}
-                        <div class="film-strip-border relative flex h-72 w-full items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 p-4 sm:h-80">
+                        <div class="film-strip-border relative flex h-64 w-full items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 p-4 sm:h-80">
                             @if ($movie->poster_url)
                                 <img
                                     src="{{ $movie->poster_url }}"
@@ -96,7 +96,7 @@
                         </div>
 
                         {{-- Movie Details - Fixed structure to prevent layout shift --}}
-                        <div class="p-6 space-y-4">
+                        <div class="p-4 space-y-4 sm:p-6">
                             {{-- Clapperboard Metadata --}}
                             <div class="flex items-center gap-3 rounded-lg border border-amber-400/20 bg-slate-950/50 px-4 py-2">
                                 <span class="text-lg">🎬</span>
@@ -110,20 +110,20 @@
                             </div>
 
                             {{-- Title --}}
-                            <h3 class="text-2xl font-bold text-amber-50 drop-shadow-md sm:text-3xl">{{ $movie->name }}</h3>
+                            <h3 class="text-xl font-bold text-amber-50 drop-shadow-md sm:text-3xl">{{ $movie->name }}</h3>
 
                             {{-- Description - Fixed 4 lines --}}
-                            <div class="min-h-[5.5rem]">
-                                <p class="line-clamp-4 text-sm leading-relaxed text-purple-100/80">
+                            <div class="min-h-[4.5rem]">
+                                <p class="line-clamp-3 text-xs leading-relaxed text-purple-100/80 sm:text-sm">
                                     {{ $movie->description ?: 'A cinematic experience awaits. No description needed for pure entertainment.' }}
                                 </p>
                             </div>
 
                             {{-- Genres as Cinema Tickets - Fixed min height --}}
                             @if ($movie->genres->isNotEmpty())
-                                <div class="flex min-h-[2.5rem] flex-wrap gap-2">
+                                <div class="flex min-h-[2.5rem] flex-wrap gap-1.5 sm:gap-2">
                                     @foreach ($movie->genres as $genre)
-                                        <span class="ticket-stub inline-flex items-center gap-1 rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-3 py-1.5 text-xs font-bold text-amber-200 shadow-sm">
+                                        <span class="ticket-stub inline-flex max-w-[48%] items-center gap-1 truncate rounded-r-lg border-l-2 border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-600/10 px-2 py-1 text-[0.65rem] font-bold leading-tight text-amber-200 shadow-sm sm:max-w-none sm:px-3 sm:py-1.5 sm:text-xs">
                                             🎫 {{ $genre->name }}
                                         </span>
                                     @endforeach
@@ -134,9 +134,9 @@
 
                             {{-- Actors as VIP Badges - Fixed min height --}}
                             @if ($movie->actors->isNotEmpty())
-                                <div class="flex min-h-[2.5rem] flex-wrap gap-2">
+                                <div class="flex min-h-[2.5rem] flex-wrap gap-1.5 sm:gap-2">
                                     @foreach ($movie->actors as $actor)
-                                        <span class="inline-flex items-center gap-1 rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-purple-600/10 px-3 py-1 text-xs font-semibold text-purple-200">
+                                        <span class="inline-flex max-w-[48%] items-center gap-1 truncate rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-purple-600/10 px-2 py-1 text-[0.65rem] font-semibold leading-tight text-purple-200 sm:max-w-none sm:px-3 sm:text-xs">
                                             ⭐ {{ $actor->name }}
                                         </span>
                                     @endforeach
