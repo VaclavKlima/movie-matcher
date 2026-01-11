@@ -42,10 +42,19 @@ else
   composer install --no-interaction --prefer-dist --optimize-autoloader
 fi
 
-# Generate APP_KEY if it's empty (after composer install)
-if ! grep -q "APP_KEY=base64:" .env; then
-  echo "🔑 Generating application key..."
-  php artisan key:generate --force
+# Ensure APP_KEY is stable across redeploys
+if [ -n "${APP_KEY:-}" ]; then
+  if grep -q "^APP_KEY=" .env; then
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" .env
+  else
+    echo "APP_KEY=${APP_KEY}" >> .env
+  fi
+else
+  # Generate APP_KEY if it's empty (after composer install)
+  if ! grep -q "APP_KEY=base64:" .env; then
+    echo "🔑 Generating application key..."
+    php artisan key:generate --force
+  fi
 fi
 
 # Create database file if it doesn't exist

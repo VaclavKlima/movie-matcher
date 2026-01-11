@@ -40,11 +40,13 @@ docker-compose logs -f
 6. **Environment variables**:
    ```
    APP_URL=https://your-domain.com
+   APP_KEY=base64:your-app-key-here
    CLOUDFLARE_TUNNEL_TOKEN=your-tunnel-token-here
    DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
    ```
    Replace:
    - `your-domain.com` with your actual domain (e.g., `moviematcher.example.com`)
+   - `your-app-key-here` with a stable Laravel app key
    - `your-tunnel-token-here` with the token from Cloudflare (the long string after `--token` in the command)
    - Discord webhook URL with your actual webhook URL (optional - for deployment notifications)
 7. Click **"Deploy the stack"**
@@ -53,7 +55,7 @@ docker-compose logs -f
 
 The entrypoint script automatically handles:
 - ✅ Creates `.env` file from `.env.example`
-- ✅ Generates Laravel application key (`APP_KEY`)
+- ✅ Generates Laravel application key (`APP_KEY`) if not provided
 - ✅ Installs Composer dependencies
 - ✅ Creates SQLite database
 - ✅ Runs database migrations
@@ -351,6 +353,7 @@ Key environment variables you can override in Portainer:
 
 | Variable | Default | Production Value | Required |
 |----------|---------|------------------|----------|
+| `APP_KEY` | *(none)* | Laravel `APP_KEY` | **Yes** (recommended for stable cookies) |
 | `APP_ENV` | `production` | `production` | Yes |
 | `APP_DEBUG` | `false` | `false` | Yes |
 | `APP_URL` | `http://localhost:8000` | `https://your-domain.com` | Yes |

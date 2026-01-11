@@ -11,6 +11,7 @@ services:
         volumes:
             - storage-data:/var/www/html/storage
         environment:
+            APP_KEY: ${APP_KEY:-}
             APP_ENV: production
             APP_DEBUG: "false"
 
@@ -101,6 +102,7 @@ services:
         volumes:
             - storage-data:/var/www/html/storage
         environment:
+            APP_KEY: ${APP_KEY:-}
             APP_ENV: production
             APP_DEBUG: "false"
 
@@ -142,6 +144,7 @@ services:
         volumes:
             - storage-data:/var/www/html/storage
         environment:
+            APP_KEY: ${APP_KEY:-}
             APP_ENV: production
             APP_DEBUG: "false"
 
@@ -182,6 +185,7 @@ services:
         volumes:
             - storage-data:/var/www/html/storage
         environment:
+            APP_KEY: ${APP_KEY:-}
             APP_ENV: production
             APP_DEBUG: "false"
 
@@ -222,6 +226,7 @@ services:
         volumes:
             - storage-data:/var/www/html/storage
         environment:
+            APP_KEY: ${APP_KEY:-}
             APP_ENV: production
             APP_DEBUG: "false"
 
@@ -262,6 +267,7 @@ services:
         volumes:
             - storage-data:/var/www/html/storage
         environment:
+            APP_KEY: ${APP_KEY:-}
             APP_URL: ${APP_URL:-http://app:8000}
             APP_ENV: production
             APP_DEBUG: "false"
