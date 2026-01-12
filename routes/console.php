@@ -12,6 +12,4 @@ Schedule::command('rooms:end-inactive')
     ->everyFifteenMinutes()
     ->environments(['production']);
 
-Schedule::command('movies:optimize-images')
-    ->dailyAt('02:00')
-    ->description('Optimize movie images daily at 2 AM');
+Schedule::command('telescope:prune --hours=720')->daily();

@@ -35,12 +35,16 @@
                         <flux:navlist.item :href="url(config('pulse.path', 'pulse'))" :current="request()->is(config('pulse.path', 'pulse'))">
                             📊 Pulse
                         </flux:navlist.item>
+                        <flux:navlist.item :href="url(config('telescope.path', 'telescope'))" :current="request()->is(config('telescope.path', 'telescope'))">
+                            🔭 Telescope
+                        </flux:navlist.item>
                         <flux:navlist.item :href="route('admin.trends')" :current="request()->routeIs('admin.trends')" wire:navigate>
                             📈 Trends Dashboard
                         </flux:navlist.item>
                         <flux:navlist.item :href="route('admin.rooms')" :current="request()->routeIs('admin.rooms')" wire:navigate>
                             🎫 Screening Rooms
                         </flux:navlist.item>
+
                     @endif
                 </flux:navlist.group>
             </flux:navlist>

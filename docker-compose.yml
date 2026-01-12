@@ -20,10 +20,6 @@ services:
 
             DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
 
-            # Nightwatch: point the app to the agent container over the Docker network
-            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
-
             DB_CONNECTION: mysql
             DB_HOST: mysql
             DB_PORT: 3306
@@ -106,10 +102,7 @@ services:
             APP_ENV: production
             APP_DEBUG: "false"
 
-            # Keep consistent inside-Docker URL + Nightwatch config for queue telemetry
             APP_URL: ${APP_URL:-http://app:8000}
-            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
 
             DB_CONNECTION: mysql
             DB_HOST: mysql
@@ -149,8 +142,6 @@ services:
             APP_DEBUG: "false"
 
             APP_URL: ${APP_URL:-http://app:8000}
-            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
 
             DB_CONNECTION: mysql
             DB_HOST: mysql
@@ -190,8 +181,6 @@ services:
             APP_DEBUG: "false"
 
             APP_URL: ${APP_URL:-http://app:8000}
-            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
 
             DB_CONNECTION: mysql
             DB_HOST: mysql
@@ -231,8 +220,6 @@ services:
             APP_DEBUG: "false"
 
             APP_URL: ${APP_URL:-http://app:8000}
-            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-            NIGHTWATCH_INGEST_URI: ${NIGHTWATCH_INGEST_URI:-nightwatch-agent:2407}
 
             DB_CONNECTION: mysql
             DB_HOST: mysql
@@ -248,46 +235,6 @@ services:
             MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
             TMDB_API_READ_ACCESS_TOKEN: ${TMDB_API_READ_ACCESS_TOKEN:-}
         command: ["php", "artisan", "schedule:work"]
-        restart: unless-stopped
-        depends_on:
-            mysql:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-            meilisearch:
-                condition: service_healthy
-
-    nightwatch-agent:
-        build:
-            context: .
-            dockerfile: docker/Dockerfile
-            args:
-                GIT_COMMIT: ${GIT_COMMIT:-unknown}
-                GIT_BRANCH: ${GIT_BRANCH:-main}
-        volumes:
-            - storage-data:/var/www/html/storage
-        environment:
-            APP_KEY: ${APP_KEY:-}
-            APP_URL: ${APP_URL:-http://app:8000}
-            APP_ENV: production
-            APP_DEBUG: "false"
-
-            DB_CONNECTION: mysql
-            DB_HOST: mysql
-            DB_PORT: 3306
-            DB_DATABASE: ${DB_DATABASE:-moviematcher}
-            DB_USERNAME: ${DB_USERNAME:-moviematcher}
-            DB_PASSWORD: ${DB_PASSWORD:-secret}
-
-            REDIS_HOST: redis
-            REDIS_PORT: 6379
-
-            MEILISEARCH_HOST: http://meilisearch:7700
-            MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
-
-            NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN:-}
-        # IMPORTANT: listen on all interfaces so other containers can connect
-        command: ["php", "artisan", "nightwatch:agent", "--listen-on=0.0.0.0:2407"]
         restart: unless-stopped
         depends_on:
             mysql:
