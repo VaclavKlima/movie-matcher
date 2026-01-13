@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.1](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.1.0...moviematcher-v0.1.1) (2026-01-13)
+
+
+### Features
+
+* **app:** enable Telescope night mode in production environment ([3990f12](https://github.com/VaclavKlima/movie-matcher/commit/3990f12cbe8797e18d718e690649decb8b4526ef))
+* **app:** replace Nightwatch with Telescope for monitoring & debugging ([5bdf245](https://github.com/VaclavKlima/movie-matcher/commit/5bdf245ac084736e7cae62a3e82202e2c00c77be))
+* **tmdb:** add command and job for queueing and refreshing TMDB movies ([878af91](https://github.com/VaclavKlima/movie-matcher/commit/878af9129cbe768f03b150799aaf7de1061c471a))
+* **tmdb:** add command and job for refreshing oldest fetched movies ([422a331](https://github.com/VaclavKlima/movie-matcher/commit/422a331666221f8d2c58f730281fc7edc45b749d))
+* **tmdb:** adjust default min popularity threshold to 0.4 ([2d33467](https://github.com/VaclavKlima/movie-matcher/commit/2d33467f631013cd88f01f6a62c8fe28e7dfbda6))
+* **tmdb:** improve movie scraping efficiency and memory usage ([ecb5a54](https://github.com/VaclavKlima/movie-matcher/commit/ecb5a546f243d75a22510058127608756c9b8dbb))
+* **tmdb:** remove tmdb queue configuration from movie fetch job ([169403c](https://github.com/VaclavKlima/movie-matcher/commit/169403c8ad079c63c2998485b71295c933e955c6))
+* **todo:** add daily movie updates and IMDB polling functionality ([1f9df30](https://github.com/VaclavKlima/movie-matcher/commit/1f9df305d8472aafd149b12865d0864b5da7798c))
+* **ui:** add genre preference selection and improved genre scoring system ([5af8afa](https://github.com/VaclavKlima/movie-matcher/commit/5af8afa6af8780ec0f4b9d3ccf93cc15bc699b0f))
+* **ui:** add overflow handling via Alpine in room match modal logic ([c26a487](https://github.com/VaclavKlima/movie-matcher/commit/c26a487b077a9647d1801ddec69bc592a44b136e))
+* **ui:** adjust room match cards for improved responsiveness and readability ([a863526](https://github.com/VaclavKlima/movie-matcher/commit/a863526a3b7b5752fb7ba554dd0cb5e63b665e41))
+* **ui:** adjust vote button text for improved responsiveness ([c3b7b91](https://github.com/VaclavKlima/movie-matcher/commit/c3b7b913317ac3e50860a0faae4b0a447528838a))
+* **ui:** enhance room code UI with Alpine store and masked share URL support ([1ef0b6a](https://github.com/VaclavKlima/movie-matcher/commit/1ef0b6a92f57e511f4312635869744424aa71fdd))
+* **ui:** fix button styling and alignment in room lobby layout ([0c5d3b8](https://github.com/VaclavKlima/movie-matcher/commit/0c5d3b8bc214d6a222e64c1ae3e69721c4306bf8))
+* **ui:** refine room match cards for better scaling and spacing adjustments ([14b8cfa](https://github.com/VaclavKlima/movie-matcher/commit/14b8cfa63935c9f73f379f4d916f11e482043701))
+
 ## [0.1.0](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.0.5...moviematcher-v0.1.0) (2026-01-11)
 
 
