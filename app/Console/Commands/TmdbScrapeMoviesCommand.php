@@ -117,8 +117,7 @@ class TmdbScrapeMoviesCommand extends Command
                     $idMovie = new IdMovie($adult, $id, $originalTitle, $popularity, $video);
 
                     $pendingDispatch = FetchMovieJob::dispatch($idMovie)
-                        ->onConnection('redis')
-                        ->onQueue('tmdb');
+                        ->onConnection('redis');
 
                     unset($pendingDispatch, $idMovie);
 
