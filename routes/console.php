@@ -13,3 +13,6 @@ Schedule::command('rooms:end-inactive')
     ->environments(['production']);
 
 Schedule::command('telescope:prune --hours=720')->daily();
+
+Schedule::command('tmdb:queue-oldest-movies')
+    ->dailyAt('1:00');
