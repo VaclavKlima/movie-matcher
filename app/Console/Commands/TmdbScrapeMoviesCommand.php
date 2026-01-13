@@ -6,6 +6,7 @@ use App\Data\TMDB\IdMovie;
 use App\Jobs\TMDB\FetchMovieJob;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Laravel\Telescope\Telescope;
 
 class TmdbScrapeMoviesCommand extends Command
 {
@@ -15,27 +16,44 @@ class TmdbScrapeMoviesCommand extends Command
 
     public function handle(): void
     {
-        $url = 'https://files.tmdb.org/p/exports/movie_ids_:month_:day_:year.json.gz';
-        $apiKey = config('tmdb.read_access_token');
+        ini_set('memory_limit', '250M');
+        gc_enable();
+
+        Telescope::stopRecording();
+
+        $exportUrlTemplate = 'https://files.tmdb.org/p/exports/movie_ids_:month_:day_:year.json.gz';
+        $apiKey = (string) config('tmdb.read_access_token');
         $date = now()->subDays(30);
 
-        $url = str_replace([
-            ':month', ':day', ':year',
-        ], [
-            str_pad($date->month, 2, '0', STR_PAD_LEFT),
-            str_pad($date->day, 2, '0', STR_PAD_LEFT),
-            $date->year,
-        ], $url);
+        $exportUrl = str_replace(
+            [':month', ':day', ':year'],
+            [
+                str_pad((string) $date->month, 2, '0', STR_PAD_LEFT),
+                str_pad((string) $date->day, 2, '0', STR_PAD_LEFT),
+                (string) $date->year,
+            ],
+            $exportUrlTemplate
+        );
 
         $this->info('Downloading TMDB movie ids export...');
-        $this->info("URL: {$url}");
+        $this->info("URL: {$exportUrl}");
         $this->info("Date: {$date->toDateString()}");
+        $this->info('Queue connection (config queue.default): '.(string) config('queue.default'));
+
+        $temporaryFilePath = tempnam(sys_get_temp_dir(), 'tmdb_export_');
+        if (! $temporaryFilePath) {
+            $this->error('Failed to create a temp file for the TMDB export.');
+
+            return;
+        }
+
+        $gzipHandle = null;
 
         try {
             $response = Http::withHeader('Authorization', "Bearer {$apiKey}")
                 ->timeout(300)
-                ->withOptions(['stream' => true])
-                ->get($url);
+                ->withOptions(['sink' => $temporaryFilePath])
+                ->get($exportUrl);
 
             $this->info("HTTP Status: {$response->status()}");
 
@@ -46,90 +64,93 @@ class TmdbScrapeMoviesCommand extends Command
                 return;
             }
 
-            $body = $response->toPsrResponse()->getBody();
-            $inflate = inflate_init(ZLIB_ENCODING_GZIP);
-            $movies = collect();
-            $buffer = '';
-            $bytesDownloaded = 0;
-            $chunkCount = 0;
+            $downloadedBytes = is_file($temporaryFilePath) ? filesize($temporaryFilePath) : 0;
+            $this->info('Downloaded: '.round($downloadedBytes / 1024 / 1024, 2).' MB');
+            $this->info('Processing export file (streaming from disk)...');
 
-            $this->info('Starting stream download...');
+            $gzipHandle = gzopen($temporaryFilePath, 'rb');
+            if ($gzipHandle === false) {
+                $this->error('Failed to open TMDB export gzip file.');
 
-            while (! $body->eof()) {
-                $chunk = $body->read(1024 * 1024);
-                if ($chunk === '') {
+                return;
+            }
+
+            $minimumPopularity = (float) config('tmdb.min_popularity', 0.4);
+
+            $parsedLineCount = 0;
+            $queuedMovieCount = 0;
+
+            $maximumLineBytesToRead = 64 * 1024;
+
+            while (! gzeof($gzipHandle)) {
+                $line = gzgets($gzipHandle, $maximumLineBytesToRead);
+                if ($line === false) {
                     break;
                 }
 
-                $bytesDownloaded += strlen($chunk);
-                $chunkCount++;
+                $parsedLineCount++;
 
-                if ($chunkCount % 10 === 0) {
-                    $this->info('Downloaded: '.round($bytesDownloaded / 1024 / 1024, 2)." MB ({$movies->count()} movies parsed)");
+                $line = rtrim($line, "\r\n");
+                if ($line === '') {
+                    continue;
                 }
 
-                $decoded = inflate_add(
-                    $inflate,
-                    $chunk,
-                    $body->eof() ? ZLIB_FINISH : ZLIB_SYNC_FLUSH
-                );
-                if ($decoded === false) {
-                    $this->error('Failed to decode TMDB export stream.');
+                $movie = json_decode($line);
 
-                    return;
+                if (! is_object($movie) || ! isset($movie->id)) {
+                    unset($movie, $line);
+                    continue;
                 }
 
-                $buffer .= $decoded;
-                while (($newlinePos = strpos($buffer, "\n")) !== false) {
-                    $line = trim(substr($buffer, 0, $newlinePos));
-                    $buffer = substr($buffer, $newlinePos + 1);
-                    if ($line === '') {
-                        continue;
-                    }
+                $popularity = (float) ($movie->popularity ?? 0);
 
-                    $movie = json_decode($line, true);
-                    if (is_array($movie)) {
-                        $movies->push($movie);
-                    }
+                if ($popularity >= $minimumPopularity) {
+                    $adult = (bool) ($movie->adult ?? false);
+                    $id = (int) $movie->id;
+
+                    $originalTitleValue = $movie->original_title ?? '';
+                    $originalTitle = is_string($originalTitleValue) ? $originalTitleValue : '';
+
+                    $video = (bool) ($movie->video ?? false);
+
+                    // Important: bypass Spatie Data::from() to avoid Collection allocations.
+                    $idMovie = new IdMovie($adult, $id, $originalTitle, $popularity, $video);
+
+                    $pendingDispatch = FetchMovieJob::dispatch($idMovie)
+                        ->onConnection('redis')
+                        ->onQueue('tmdb');
+
+                    unset($pendingDispatch, $idMovie);
+
+                    $queuedMovieCount++;
+                }
+
+                unset($movie, $line);
+
+                if ($parsedLineCount % 200000 === 0) {
+                    $this->info("Parsed {$parsedLineCount} lines, queued {$queuedMovieCount} movies");
+                    gc_collect_cycles();
                 }
             }
 
-            $this->info('Download complete.');
-            $line = trim($buffer);
-            if ($line !== '') {
-                $movie = json_decode($line, true);
-                if (is_array($movie)) {
-                    $movies->push($movie);
-                }
-            }
-            $this->info('Loaded movie ids into memory.');
-        } catch (\Exception $e) {
+            $this->info("Done. Parsed {$parsedLineCount} lines.");
+            $this->info("Queued {$queuedMovieCount} movies (min_popularity={$minimumPopularity}).");
+        } catch (\Throwable $e) {
             $this->error('Error downloading or processing TMDB export:');
             $this->error($e->getMessage());
             $this->error('Stack trace: '.$e->getTraceAsString());
 
             return;
+        } finally {
+            if (is_resource($gzipHandle)) {
+                gzclose($gzipHandle);
+            }
+
+            if (is_file($temporaryFilePath)) {
+                @unlink($temporaryFilePath);
+            }
         }
 
-        $minPopularity = (float) config('tmdb.min_popularity', 0.5);
-
-        $movies = $movies
-            ->filter(fn ($movie) => ($movie['popularity'] ?? 0) >= $minPopularity)
-            ->sortByDesc('popularity')
-            ->values();
-
-        $this->info("Loaded {$movies->count()} movies sorted by popularity.");
-        $this->info('Dispatching jobs for movie details...');
-
-        $progressBar = $this->output->createProgressBar($movies->count());
-        $progressBar->start();
-
-        foreach ($movies as $movie) {
-            FetchMovieJob::dispatch(IdMovie::from($movie));
-            $progressBar->advance();
-        }
-        $progressBar->finish();
-        $this->newLine();
         $this->info('All movies queued for download.');
     }
 }

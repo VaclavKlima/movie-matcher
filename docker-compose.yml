@@ -214,6 +214,7 @@ services:
                 GIT_BRANCH: ${GIT_BRANCH:-main}
         volumes:
             - storage-data:/var/www/html/storage
+        mem_limit: 3g
         environment:
             APP_KEY: ${APP_KEY:-}
             APP_ENV: production
@@ -234,7 +235,7 @@ services:
             MEILISEARCH_HOST: http://meilisearch:7700
             MEILISEARCH_KEY: ${MEILISEARCH_KEY:-}
             TMDB_API_READ_ACCESS_TOKEN: ${TMDB_API_READ_ACCESS_TOKEN:-}
-        command: ["php", "artisan", "schedule:work"]
+        command: ["php", "-d", "memory_limit=2G", "artisan", "schedule:work"]
         restart: unless-stopped
         depends_on:
             mysql:

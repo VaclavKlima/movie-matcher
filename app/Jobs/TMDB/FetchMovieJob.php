@@ -25,6 +25,11 @@ class FetchMovieJob implements ShouldQueue
 
     public function handle(): void
     {
+        // if the movie exists in the database, we don't need to fetch it again
+        if (Movie::query()->where('tmdb_id', $this->idMovie->id)->exists()) {
+            return;
+        }
+
         $url = 'https://api.themoviedb.org/3/movie/{movie_id}';
         $url = str_replace('{movie_id}', $this->idMovie->id, $url);
 
