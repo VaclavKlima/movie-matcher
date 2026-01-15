@@ -210,7 +210,7 @@ document.addEventListener('alpine:init', () => {
 
         debouncedSync() {
             if (this.syncTimeout) {
-                clearTimeout(this.syncTimeout);
+                window.clearTimeout(this.syncTimeout);
             }
 
             this.syncTimeout = setTimeout(() => {
@@ -223,7 +223,7 @@ document.addEventListener('alpine:init', () => {
                 try {
                     await wire.$call('updateGenrePreferences', this.preferred, this.avoided);
                 } catch (error) {
-                    console.error('Failed to sync genre preferences:', error);
+                    window.console.error('Failed to sync genre preferences:', error);
                 }
             }
         },

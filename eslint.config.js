@@ -19,6 +19,8 @@ export default [
             sourceType: 'module',
             globals: {
                 Alpine: 'readonly',
+                clearTimeout: 'readonly',
+                console: 'readonly',
                 document: 'readonly',
                 navigator: 'readonly',
                 requestAnimationFrame: 'readonly',
