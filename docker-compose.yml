@@ -75,7 +75,7 @@ services:
         # Pinned version to prevent automatic upgrades that cause database incompatibility
         # To upgrade: 1) Stop services, 2) Remove meilisearch-data volume, 3) Update version, 4) Start services, 5) Run: php artisan scout:import "App\Models\Movie"
         # See upgrade guide: https://www.meilisearch.com/docs/learn/update_and_migration/updating
-        image: getmeili/meilisearch:v1.5.1
+        image: getmeili/meilisearch:v1.33.1
         ports:
             - "7700:7700"
         volumes:
