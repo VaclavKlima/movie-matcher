@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.1.1...moviematcher-v0.1.2) (2026-01-15)
+
+
+### Features
+
+* **tmdb:** update default refresh count and interval values ([416d648](https://github.com/VaclavKlima/movie-matcher/commit/416d64801980cc274fb90877c7897965bec00250))
+
+
+### Fixes
+
+* **eslint:** add missing globals and use explicit `window` for clarity ([cbff979](https://github.com/VaclavKlima/movie-matcher/commit/cbff9797586e33fc9e34d4ebbb64873f98823b99))
+
 ## [0.1.1](https://github.com/VaclavKlima/movie-matcher/compare/moviematcher-v0.1.0...moviematcher-v0.1.1) (2026-01-13)
 
 
