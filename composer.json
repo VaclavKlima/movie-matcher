@@ -19,7 +19,7 @@
         "laravel/pulse": "^1.4",
         "laravel/scout": "^10.23",
         "laravel/telescope": "^5.16",
-        "laravel/tinker": "^2.10.1",
+        "laravel/tinker": "^3.0.2",
         "livewire/flux": "^2.1.1",
         "livewire/volt": "^1.7.0",
         "meilisearch/meilisearch-php": "^1.16",
