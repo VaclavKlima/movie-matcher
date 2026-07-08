@@ -9,7 +9,7 @@
         "format:check": "prettier --check \"resources/**/*.{js,css}\" \"vite.config.js\" \"eslint.config.js\""
     },
     "dependencies": {
-        "@tailwindcss/vite": "^4.1.18",
+        "@tailwindcss/vite": "^4.3.2",
         "autoprefixer": "^10.4.23",
         "axios": "^1.7.4",
         "concurrently": "^9.2.1",
