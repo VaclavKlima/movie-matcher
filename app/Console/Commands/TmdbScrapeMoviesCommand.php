@@ -99,6 +99,7 @@ class TmdbScrapeMoviesCommand extends Command
 
                 if (! is_object($movie) || ! isset($movie->id)) {
                     unset($movie, $line);
+
                     continue;
                 }
 
