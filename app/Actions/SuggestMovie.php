@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Movie;
 use App\Models\MovieVote;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -696,7 +697,7 @@ final class SuggestMovie
             ->groupBy("{$pivotTableName}.{$pivotTagColumnName}");
     }
 
-    private function buildAverageFromCountsSubquery($countsSubquery, string $alias): \Illuminate\Database\Query\Builder
+    private function buildAverageFromCountsSubquery($countsSubquery, string $alias): Builder
     {
         return DB::query()
             ->fromSub($countsSubquery, $alias)
