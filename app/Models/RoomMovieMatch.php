@@ -13,12 +13,15 @@ class RoomMovieMatch extends Model
         'matched_at',
     ];
 
-    protected $casts = [
-        'matched_at' => 'datetime',
-    ];
-
     public function movie(): BelongsTo
     {
         return $this->belongsTo(Movie::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'matched_at' => 'datetime',
+        ];
     }
 }
