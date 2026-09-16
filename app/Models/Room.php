@@ -17,12 +17,6 @@ class Room extends Model
         'ended_at',
     ];
 
-    protected $casts = [
-        'started_at' => 'datetime',
-        'continue_hunting_requested_at' => 'datetime',
-        'ended_at' => 'datetime',
-    ];
-
     public function participants(): HasMany
     {
         return $this->hasMany(RoomParticipant::class);
@@ -41,5 +35,14 @@ class Room extends Model
         } while (static::where('code', $code)->exists());
 
         return Str::upper($code);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'started_at' => 'datetime',
+            'continue_hunting_requested_at' => 'datetime',
+            'ended_at' => 'datetime',
+        ];
     }
 }
