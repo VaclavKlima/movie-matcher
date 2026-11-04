@@ -6,17 +6,13 @@ use App\Data\TMDB\TmdbMovie;
 use App\Models\Actor;
 use App\Models\Genre;
 use App\Models\Movie;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 
 class RefreshMovieJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use \Illuminate\Foundation\Queue\Queueable;
 
     public function __construct(
         private readonly int $tmdbId,
