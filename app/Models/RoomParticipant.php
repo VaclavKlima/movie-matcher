@@ -22,13 +22,6 @@ class RoomParticipant extends Model
         'kicked_at',
     ];
 
-    protected $casts = [
-        'is_host' => 'boolean',
-        'is_ready' => 'boolean',
-        'last_seen_at' => 'datetime',
-        'kicked_at' => 'datetime',
-    ];
-
     public function room()
     {
         return $this->belongsTo(Room::class);
@@ -39,5 +32,15 @@ class RoomParticipant extends Model
         return $this->belongsToMany(Genre::class, 'room_participant_genre_preferences')
             ->withPivot('preference')
             ->withTimestamps();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_host' => 'boolean',
+            'is_ready' => 'boolean',
+            'last_seen_at' => 'datetime',
+            'kicked_at' => 'datetime',
+        ];
     }
 }
